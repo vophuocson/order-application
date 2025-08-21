@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"user-domain/repository/env"
+	"user-domain/env"
 
 	"github.com/pkg/errors"
 	"gorm.io/driver/postgres"

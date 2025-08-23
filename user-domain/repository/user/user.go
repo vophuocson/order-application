@@ -2,13 +2,10 @@ package userrepo
 
 import (
 	"context"
-	"fmt"
 	"user-domain/internal/entity"
-	"user-domain/repository"
 	"user-domain/repository/dao"
 	"user-domain/repository/model"
 
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -59,13 +56,8 @@ func (d *UserRepo) ListUsers(ctx context.Context, offset, limit int) ([]*entity.
 	return CreateUsersEntityFromUsesrModel(usersModel), nil
 }
 
-func NewUserRepo(cfg repository.DBConfig) (*UserRepo, error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", cfg.GetHostName(), cfg.GetPort(), cfg.GetUser(), cfg.GetDBName(), cfg.GetPassword(), cfg.GetSSLMode())
-	gormInstance, err := gorm.Open(postgres.Open(dsn))
-	if err != nil {
-		return nil, err
-	}
-	query := dao.Use(gormInstance)
+func NewUserRepo(db *gorm.DB) (*UserRepo, error) {
+	query := dao.Use(db)
 	return &UserRepo{
 		query: *query,
 	}, nil

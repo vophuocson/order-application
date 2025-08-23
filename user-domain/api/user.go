@@ -39,7 +39,7 @@ func (api *user) Get(userID string) (*dto.UserResponse, error) {
 	return &res, nil
 }
 
-func (api *user) List(userID string, offset int, limit int) (*dto.UsersResponse, error) {
+func (api *user) List(offset int, limit int) (*dto.UsersResponse, error) {
 	ctx := context.Background()
 	eUsers, err := api.sv.ListUsers(ctx, offset, limit)
 	if err != nil {

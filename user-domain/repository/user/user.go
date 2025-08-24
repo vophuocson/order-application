@@ -3,23 +3,24 @@ package userrepo
 import (
 	"context"
 	"user-domain/internal/entity"
+	"user-domain/internal/outport"
 	"user-domain/repository/dao"
 	"user-domain/repository/model"
 
 	"gorm.io/gorm"
 )
 
-type UserRepo struct {
+type userRepo struct {
 	query dao.Query
 }
 
-func (d *UserRepo) CreateUser(ctx context.Context, user *entity.User) error {
+func (d *userRepo) CreateUser(ctx context.Context, user *entity.User) error {
 	u := CreateRepoEntityFromUserEntity(user)
 	userQery := d.query.User
 	return userQery.WithContext(ctx).Create(u)
 }
 
-func (d *UserRepo) UpdateUser(ctx context.Context, user *entity.User) error {
+func (d *userRepo) UpdateUser(ctx context.Context, user *entity.User) error {
 	u := CreateRepoEntityFromUserEntity(user)
 	userQery := d.query.User
 	_, err := userQery.WithContext(ctx).Updates(u)
@@ -29,7 +30,7 @@ func (d *UserRepo) UpdateUser(ctx context.Context, user *entity.User) error {
 	return nil
 }
 
-func (d *UserRepo) DeleteUser(ctx context.Context, id string) error {
+func (d *userRepo) DeleteUser(ctx context.Context, id string) error {
 	userQery := d.query.User
 	_, err := userQery.Delete(&model.User{ID: id})
 	if err != nil {
@@ -38,7 +39,7 @@ func (d *UserRepo) DeleteUser(ctx context.Context, id string) error {
 	return nil
 }
 
-func (d *UserRepo) GetUserByID(ctx context.Context, id string) (*entity.User, error) {
+func (d *userRepo) GetUserByID(ctx context.Context, id string) (*entity.User, error) {
 	userQery := d.query.User
 	userM, err := userQery.Where(userQery.ID.Eq(id)).First()
 	if err != nil {
@@ -47,7 +48,7 @@ func (d *UserRepo) GetUserByID(ctx context.Context, id string) (*entity.User, er
 	return CreateUserEntityFromUserModel(userM), nil
 }
 
-func (d *UserRepo) ListUsers(ctx context.Context, offset, limit int) ([]*entity.User, error) {
+func (d *userRepo) ListUsers(ctx context.Context, offset, limit int) ([]*entity.User, error) {
 	userQery := d.query.User
 	usersModel, err := userQery.Offset(offset).Limit(limit).Find()
 	if err != nil {
@@ -56,9 +57,9 @@ func (d *UserRepo) ListUsers(ctx context.Context, offset, limit int) ([]*entity.
 	return CreateUsersEntityFromUsesrModel(usersModel), nil
 }
 
-func NewUserRepo(db *gorm.DB) (*UserRepo, error) {
+func NewUserRepo(db *gorm.DB) outport.UserRepository {
 	query := dao.Use(db)
-	return &UserRepo{
+	return &userRepo{
 		query: *query,
-	}, nil
+	}
 }

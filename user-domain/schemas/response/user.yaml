@@ -1,0 +1,30 @@
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID của user
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: Tên người dùng
+          example: "Nguyen Van A"
+        email:
+          type: string
+          format: email
+          description: Địa chỉ email
+          example: "vana@example.com"
+        phone:
+          type: string
+          description: Số điện thoại
+          example: "+84901234567"
+        address:
+          type: string
+          description: Địa chỉ
+          example: "123 Đường ABC, Quận 1, TP.HCM"
+      required:
+        - id
+        - name
+        - email

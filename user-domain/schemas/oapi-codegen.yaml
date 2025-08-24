@@ -1,0 +1,6 @@
+package: handler
+output: ../api/handler/hanler.gen.go
+generate:
+  strict-server: true
+  models: true
+  chi-server: true

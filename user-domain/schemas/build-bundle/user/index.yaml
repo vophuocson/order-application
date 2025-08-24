@@ -1,0 +1,49 @@
+openapi: 3.0.3
+info:
+  title: API
+  version: 1.0.0
+paths:
+  /users:
+    post:
+      summary: Create a new user
+      description: API to create a new user in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPost'
+      responses:
+        '201':
+          description: User successfully created
+        '400':
+          description: Invalid request (missing or incorrect data)
+        '404':
+          description: Related resource not found
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    UserPost:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User name
+          example: Nguyen Van A
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: vana@example.com
+        phone:
+          type: string
+          description: Phone number (optional)
+          example: '+84901234567'
+        address:
+          type: string
+          description: Address (optional)
+          example: '123 Đường ABC, Quận 1, TP.HCM'
+      required:
+        - name
+        - email

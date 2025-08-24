@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Golang",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/user-domain/cmd/api/main.go",
+      "env": {
+        "LOG_SPACE": "2",
+        "LOG_COLOR": "true",
+        "ENV": "develop"
+      }
+    },
+  ],
+  // "inputs": [
+  //   {
+  //     "id": "args",
+  //     "description": "args",
+  //     "type": "promptString"
+  //   }
+  // ]
+}

@@ -1,0 +1,25 @@
+components:
+  schemas:
+    UserPost:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User name
+          example: "Nguyen Van A"
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: "vana@example.com"
+        phone:
+          type: string
+          description: Phone number (optional)
+          example: "+84901234567"
+        address:
+          type: string
+          description: Address (optional)
+          example: "123 Đường ABC, Quận 1, TP.HCM"
+      required:
+        - name
+        - email

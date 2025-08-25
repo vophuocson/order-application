@@ -1,16 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	"user-domain/api/handler"
-	"user-domain/api/inbound"
-	"user-domain/env"
+	"user-domain/controler/handler"
+	usercontroler "user-domain/controler/user"
 	"user-domain/internal/service"
+	database "user-domain/pkg/db"
 	userrepo "user-domain/repository/user"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 type Server struct {
@@ -18,15 +14,19 @@ type Server struct {
 }
 
 func main() {
-	db, err := connectDatabase()
+	db, err := database.NewDatabase()
 	if err != nil {
-		panic("error connects database")
+		panic(err.Error())
 	}
-	userRepo := userrepo.NewUserRepo(db)
+	gorm, err := db.NewGorm()
+	if err != nil {
+		panic(err.Error())
+	}
+	userRepo := userrepo.NewUserRepo(gorm)
 	userService := service.NewUserService(userRepo)
-	userHandler := inbound.NewUserHandler(userService)
-	control := handler.NewStrictHandler(userHandler, nil)
-	handler := handler.Handler(control)
+	userControler := usercontroler.NewUserControler(userService)
+	handlerStrict := handler.NewStrictHandler(userControler, nil)
+	handler := handler.Handler(handlerStrict)
 	s := Server{
 		httpServer: &http.Server{
 			Handler: handler,
@@ -36,15 +36,4 @@ func main() {
 	if err != nil {
 		panic("error running server")
 	}
-}
-
-func connectDatabase() (*gorm.DB, error) {
-	cfg := env.NewConfig()
-	err := cfg.Load("../../../.databse_env")
-	if err != nil {
-		return nil, err
-	}
-	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", cfg.GetHostName(), cfg.GetPort(), cfg.GetUser(), cfg.GetDBName(), cfg.GetPassword(), cfg.GetSSLMode())
-	gormConfig := &gorm.Config{}
-	return gorm.Open(postgres.Open(dsn), gormConfig)
 }

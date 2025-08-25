@@ -1,20 +1,13 @@
-package inbound
+package usercontroler
 
 import (
 	"context"
-	"user-domain/api/dto"
-	"user-domain/api/handler"
+	"user-domain/controler/dto"
+	"user-domain/controler/handler"
+	"user-domain/controler/inbound"
 	"user-domain/internal/entity"
 	"user-domain/internal/inport"
 )
-
-type UserApi interface {
-	PostUsers(ctx context.Context, request handler.PostUsersRequestObject) (handler.PostUsersResponseObject, error)
-	// Update(userID string, userReq *dto.UserPut) error
-	// Get(userID string) (*dto.UserResponse, error)
-	// List(offset int, limit int) (*dto.UsersResponse, error)
-	// Delete(userID string) error
-}
 
 type user struct {
 	sv inport.UserService
@@ -84,7 +77,7 @@ func createUserPostFromPostUsersRequestObject(s *handler.PostUsersRequestObject)
 // 	return err
 // }
 
-func NewUserHandler(sv inport.UserService) UserApi {
+func NewUserControler(sv inport.UserService) inbound.UserApi {
 	return &user{
 		sv: sv,
 	}

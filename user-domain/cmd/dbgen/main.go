@@ -1,13 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"user-domain/env"
+	database "user-domain/pkg/db"
 
 	"github.com/pkg/errors"
-	"gorm.io/driver/postgres"
 	"gorm.io/gen"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -17,22 +14,17 @@ func main() {
 		Mode:             gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface,
 	}
 	g := gen.NewGenerator(cfg)
-	db, err := connectDatabase()
+
+	db, err := database.NewDatabase()
 	if err != nil {
 		panic(errors.Wrap(err, "Connect database failed"))
 	}
-	g.UseDB(db)
+	gorm, err := db.NewGorm()
+	if err != nil {
+		panic(errors.Wrap(err, "Connect database failed"))
+	}
+
+	g.UseDB(gorm)
 	g.ApplyBasic(g.GenerateAllTable()...)
 	g.Execute()
-}
-
-func connectDatabase() (*gorm.DB, error) {
-	cfg := env.NewConfig()
-	err := cfg.Load("../../../.databse_env")
-	if err != nil {
-		return nil, err
-	}
-	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", cfg.GetHostName(), cfg.GetPort(), cfg.GetUser(), cfg.GetDBName(), cfg.GetPassword(), cfg.GetSSLMode())
-	gormConfig := &gorm.Config{}
-	return gorm.Open(postgres.Open(dsn), gormConfig)
 }

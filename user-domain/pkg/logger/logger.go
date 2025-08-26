@@ -2,10 +2,12 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"user-domain/internal/outport"
 	lg "user-domain/internal/outport"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type logger struct {
@@ -53,5 +55,20 @@ func convertToZapField(fs lg.LogFields) []zap.Field {
 }
 
 func NewLogger() outport.Logger {
-	return &logger{}
+	configLog := zapcore.EncoderConfig{
+		MessageKey:    "msg",
+		LevelKey:      "level",
+		TimeKey:       "time",
+		NameKey:       "logger",
+		StacktraceKey: "stacktrace",
+		EncodeLevel:   zapcore.CapitalLevelEncoder,
+		EncodeTime:    zapcore.EpochNanosTimeEncoder,
+	}
+	jsonEndcoder := zapcore.NewJSONEncoder(configLog)
+	core := zapcore.NewCore(jsonEndcoder, os.Stdout, zap.DebugLevel)
+	logger := logger{
+		logger: zap.New(core, nil),
+	}
+	zap.NewExample()
+	return &logger
 }

@@ -6,6 +6,7 @@ import (
 	usercontroler "user-domain/controler/user"
 	"user-domain/internal/service"
 	database "user-domain/pkg/db"
+	"user-domain/pkg/logger"
 	userrepo "user-domain/repository/user"
 )
 
@@ -23,7 +24,8 @@ func main() {
 		panic(err.Error())
 	}
 	userRepo := userrepo.NewUserRepo(gorm)
-	userService := service.NewUserService(userRepo)
+	logger := logger.NewLogger()
+	userService := service.NewUserService(userRepo, logger)
 	userControler := usercontroler.NewUserControler(userService)
 	handlerStrict := handler.NewStrictHandler(userControler, nil)
 	handler := handler.Handler(handlerStrict)

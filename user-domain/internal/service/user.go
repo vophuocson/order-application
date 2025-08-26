@@ -8,7 +8,8 @@ import (
 )
 
 type user struct {
-	repo outport.UserRepository
+	repo   outport.UserRepository
+	logger outport.Logger
 }
 
 func (u *user) CreateUser(ctx context.Context, user *entity.User) error {
@@ -47,6 +48,6 @@ func (u *user) ListUsers(ctx context.Context, offset, limit int) ([]*entity.User
 	return entities, nil
 }
 
-func NewUserService(r outport.UserRepository) inport.UserService {
-	return &user{repo: r}
+func NewUserService(r outport.UserRepository, logger outport.Logger) inport.UserService {
+	return &user{repo: r, logger: logger}
 }

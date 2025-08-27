@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"time"
 	config "user-domain/configs"
 
 	"gorm.io/driver/postgres"
@@ -27,9 +28,13 @@ func (db *databse) GetConnection() *sql.DB {
 	return db.conn
 }
 func (db *databse) NewGorm() (*gorm.DB, error) {
-	return gorm.Open(postgres.New(postgres.Config{
-		Conn: db.conn,
-	}), nil)
+
+	psgConfig := postgres.Config{
+		Conn:             db.conn,
+		WithoutReturning: true,
+	}
+	dialector := postgres.New(psgConfig)
+	return gorm.Open(dialector, nil)
 }
 
 func NewDatabase() (Database, error) {
@@ -39,6 +44,10 @@ func NewDatabase() (Database, error) {
 	if err != nil {
 		return nil, err
 	}
+	conn.SetMaxOpenConns(10)
+	conn.SetMaxIdleConns(5)
+	conn.SetConnMaxLifetime(time.Hour * 24)
+	conn.SetConnMaxIdleTime(time.Hour * 12)
 	return &databse{
 		cfg:  cfg,
 		conn: conn,

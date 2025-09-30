@@ -6,6 +6,7 @@ import (
 	"time"
 	config "user-domain/configs"
 
+	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -30,8 +31,7 @@ func (db *databse) GetConnection() *sql.DB {
 func (db *databse) NewGorm() (*gorm.DB, error) {
 
 	psgConfig := postgres.Config{
-		Conn:             db.conn,
-		WithoutReturning: true,
+		Conn: db.conn,
 	}
 	dialector := postgres.New(psgConfig)
 	return gorm.Open(dialector, nil)
@@ -39,6 +39,7 @@ func (db *databse) NewGorm() (*gorm.DB, error) {
 
 func NewDatabase() (Database, error) {
 	cfg := config.NewConfig()
+	cfg.Load()
 	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", cfg.GetHostName(), cfg.GetPort(), cfg.GetUser(), cfg.GetDBName(), cfg.GetPassword(), cfg.GetSSLMode())
 	conn, err := sql.Open("postgres", dsn)
 	if err != nil {

@@ -26,7 +26,7 @@ func main() {
 	userRepo := userrepo.NewUserRepo(gorm)
 	logger := logger.NewLogger()
 	userService := service.NewUserService(userRepo, logger)
-	userControler := usercontroler.NewUserControler(userService)
+	userControler := usercontroler.NewUserControler(userService, logger)
 	handlerStrict := handler.NewStrictHandler(userControler, nil)
 	handler := handler.Handler(handlerStrict)
 	s := Server{

@@ -67,8 +67,7 @@ func NewLogger() outport.Logger {
 	jsonEndcoder := zapcore.NewJSONEncoder(configLog)
 	core := zapcore.NewCore(jsonEndcoder, os.Stdout, zap.DebugLevel)
 	logger := logger{
-		logger: zap.New(core, nil),
+		logger: zap.New(core),
 	}
-	zap.NewExample()
 	return &logger
 }

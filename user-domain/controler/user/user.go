@@ -7,10 +7,12 @@ import (
 	"user-domain/controler/inbound"
 	"user-domain/internal/entity"
 	"user-domain/internal/inport"
+	"user-domain/internal/outport"
 )
 
 type user struct {
-	sv inport.UserService
+	sv     inport.UserService
+	logger outport.Logger
 }
 
 func (h *user) PostUsers(ctx context.Context, request handler.PostUsersRequestObject) (handler.PostUsersResponseObject, error) {
@@ -77,8 +79,9 @@ func createUserPostFromPostUsersRequestObject(s *handler.PostUsersRequestObject)
 // 	return err
 // }
 
-func NewUserControler(sv inport.UserService) inbound.UserApi {
+func NewUserControler(sv inport.UserService, logger outport.Logger) inbound.UserApi {
 	return &user{
-		sv: sv,
+		sv:     sv,
+		logger: logger,
 	}
 }

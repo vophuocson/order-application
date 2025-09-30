@@ -39,8 +39,8 @@ func (db *dbConfig) GetSSLMode() string {
 	return db.PostgresSSLMode
 }
 
-func (db *dbConfig) Load(filenames ...string) error {
-	i, err := os.Open(filenames[0])
+func (db *dbConfig) Load() error {
+	i, err := os.Open("../../pkg/db/.env")
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (db *dbConfig) Load(filenames ...string) error {
 }
 
 type DBConfig interface {
-	Load(filenames ...string) error
+	Load() error
 	GetDBName() string
 	GetHostName() string
 	GetPort() string

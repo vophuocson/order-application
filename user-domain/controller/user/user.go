@@ -1,10 +1,11 @@
 package usercontroler
 
 import (
-	"context"
-	"user-domain/controler/dto"
-	"user-domain/controler/handler"
-	"user-domain/controler/inbound"
+	"encoding/json"
+	"net/http"
+	"user-domain/controller/dto"
+	"user-domain/controller/handler"
+	"user-domain/controller/inbound"
 	"user-domain/internal/entity"
 	"user-domain/internal/inport"
 	"user-domain/internal/outport"
@@ -15,23 +16,27 @@ type user struct {
 	logger outport.Logger
 }
 
-func (h *user) PostUsers(ctx context.Context, request handler.PostUsersRequestObject) (handler.PostUsersResponseObject, error) {
-	var userDto = createUserPostFromPostUsersRequestObject(&request)
+func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
+	userDtoRequest := handler.PostUsersJSONRequestBody{}
+	err := json.NewDecoder(r.Body).Decode(&userDtoRequest)
+	if err != nil {
+		// handle error here
+	}
+	var userDto = createUserPostFromPostUsersRequestObject(&userDtoRequest)
 	userEntity := entity.User{}
 	userDto.MapTo(&userEntity)
-	err := h.sv.CreateUser(ctx, &userEntity)
+	err = h.sv.CreateUser(r.Context(), &userEntity)
 	if err != nil {
-		return handler.PostUsers400Response{}, err
+		// handle error here
 	}
-	return handler.PostUsers201Response{}, nil
 }
 
-func createUserPostFromPostUsersRequestObject(s *handler.PostUsersRequestObject) *dto.UserPost {
+func createUserPostFromPostUsersRequestObject(s *handler.PostUsersJSONRequestBody) *dto.UserPost {
 	return &dto.UserPost{
-		Name:  s.Body.Name,
-		Email: string(s.Body.Email),
-		// Phone:   s.Body.Phone,
-		// Address: s.Body.Address,
+		Name:  s.Name,
+		Email: string(s.Email),
+		// Phone:   s.Phone,
+		// Address: s.Address,
 	}
 }
 

@@ -2,11 +2,10 @@ openapi: 3.0.3
 info:
   title: API
   version: 1.0.0
-
 paths:
   /users:
     post:
-      tags: 
+      tags:
         - user
       summary: Create a new user
       description: API to create a new user in the system
@@ -25,8 +24,28 @@ paths:
           description: Related resource not found
         '500':
           description: Internal server error
-
 components:
   schemas:
     UserPost:
-      $ref: './request/user/post.yaml#/components/schemas/UserPost'
+      type: object
+      properties:
+        name:
+          type: string
+          description: User name
+          example: Nguyen Van A
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: vana@example.com
+        phone:
+          type: string
+          description: Phone number (optional)
+          example: '+84901234567'
+        address:
+          type: string
+          description: Address (optional)
+          example: '123 Đường ABC, Quận 1, TP.HCM'
+      required:
+        - name
+        - email

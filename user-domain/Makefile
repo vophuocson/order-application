@@ -1,6 +1,6 @@
 API_DOC_DIR := ./schemas
 API_DOC := $(API_DOC_DIR)/build-bundle/$(TAG).yaml
-OUTPUT_DIR := ./controller/handler
+OUTPUT_DIR := ./pkg/handler
 CONFIG_FILE:=$(API_DOC_DIR)/oapi-codegen.yaml
 
 define _apigen

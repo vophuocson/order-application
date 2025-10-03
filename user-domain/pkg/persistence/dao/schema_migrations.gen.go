@@ -7,6 +7,7 @@ package dao
 import (
 	"context"
 	"database/sql"
+	"user-domain/pkg/persistence/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,8 +17,6 @@ import (
 	"gorm.io/gen/field"
 
 	"gorm.io/plugin/dbresolver"
-
-	"user-domain/repository/model"
 )
 
 func newSchemaMigration(db *gorm.DB, opts ...gen.DOOption) schemaMigration {

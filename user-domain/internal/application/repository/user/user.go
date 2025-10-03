@@ -2,13 +2,13 @@ package userrepository
 
 import (
 	"context"
-	userrepooutbound "user-domain/internal/application/repository/user/outbound"
+	applicationoutbound "user-domain/internal/application/outbound"
+	domainoutport "user-domain/internal/domain/outport"
 	"user-domain/internal/entity"
-	"user-domain/internal/outport"
 )
 
 type userRepo struct {
-	userOutbound userrepooutbound.UserRepo
+	userOutbound applicationoutbound.UserRepo
 }
 
 func (u *userRepo) CreateUser(ctx context.Context, user *entity.User) error {
@@ -31,7 +31,7 @@ func (u *userRepo) ListUsers(ctx context.Context, offset, limit int) ([]*entity.
 	return u.userOutbound.ListUsers(ctx, offset, limit)
 }
 
-func NewUserRepo(userOutbound userrepooutbound.UserRepo) outport.UserRepository {
+func NewUserRepo(userOutbound applicationoutbound.UserRepo) domainoutport.UserRepository {
 	return &userRepo{
 		userOutbound: userOutbound,
 	}

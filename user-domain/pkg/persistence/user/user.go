@@ -1,11 +1,11 @@
-package userrepo
+package userpersistence
 
 import (
 	"context"
+	applicationoutbound "user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
-	"user-domain/internal/outport"
-	"user-domain/repository/dao"
-	"user-domain/repository/model"
+	"user-domain/pkg/persistence/dao"
+	"user-domain/pkg/persistence/model"
 
 	"gorm.io/gorm"
 )
@@ -57,7 +57,7 @@ func (d *userRepo) ListUsers(ctx context.Context, offset, limit int) ([]*entity.
 	return CreateUsersEntityFromUsesrModel(usersModel), nil
 }
 
-func NewUserRepo(db *gorm.DB) outport.UserRepository {
+func NewUserRepo(db *gorm.DB) applicationoutbound.UserRepo {
 	query := dao.Use(db)
 	return &userRepo{
 		query: *query,

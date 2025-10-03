@@ -1,5 +1,5 @@
 package: handler
 generate:
   # server-urls: true
-  models: true
+  # models: true
   chi-server: true

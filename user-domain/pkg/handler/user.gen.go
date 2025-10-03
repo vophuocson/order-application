@@ -8,26 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
-
-// UserPost defines model for UserPost.
-type UserPost struct {
-	// Address Address (optional)
-	Address *string `json:"address,omitempty"`
-
-	// Email Email address
-	Email openapi_types.Email `json:"email"`
-
-	// Name User name
-	Name string `json:"name"`
-
-	// Phone Phone number (optional)
-	Phone *string `json:"phone,omitempty"`
-}
-
-// PostUsersJSONRequestBody defines body for PostUsers for application/json ContentType.
-type PostUsersJSONRequestBody = UserPost
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {

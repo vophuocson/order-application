@@ -1,8 +1,8 @@
-package userrepo
+package userpersistence
 
 import (
 	"user-domain/internal/entity"
-	"user-domain/repository/model"
+	"user-domain/pkg/persistence/model"
 )
 
 func CreateRepoEntityFromUserEntity(e *entity.User) *model.User {

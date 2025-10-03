@@ -1,11 +1,11 @@
-package userinport
+package domainoutport
 
 import (
 	"context"
 	"user-domain/internal/entity"
 )
 
-type UserService interface {
+type UserRepository interface {
 	CreateUser(ctx context.Context, user *entity.User) error
 	GetUserByID(ctx context.Context, id string) (*entity.User, error)
 	UpdateUser(ctx context.Context, user *entity.User) error

@@ -1,4 +1,4 @@
-package useroutport
+package domainoutport
 
 type LogFields map[string]interface{}
 

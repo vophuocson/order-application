@@ -1,4 +1,4 @@
-package inbound
+package applicationinbound
 
 import "net/http"
 

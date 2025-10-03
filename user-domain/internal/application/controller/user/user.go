@@ -1,43 +1,32 @@
-package userapplication
+package usercontroller
 
 import (
 	"encoding/json"
 	"net/http"
-	"user-domain/controller/dto"
-	"user-domain/controller/handler"
-	"user-domain/controller/inbound"
-	userapioutbound "user-domain/internal/application/controller/user/outbound"
-	userinport "user-domain/internal/domain/user/inport"
+	"user-domain/internal/application/controller/user/dto"
+	applicationinbound "user-domain/internal/application/inbound"
+	applicationoutbound "user-domain/internal/application/outbound"
+	domaininport "user-domain/internal/domain/inport"
 
 	"user-domain/internal/entity"
 )
 
 type user struct {
-	sv     userinport.UserService
-	logger userapioutbound.Logger
+	sv     domaininport.UserService
+	logger applicationoutbound.Logger
 }
 
 func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
-	userDtoRequest := handler.PostUsersJSONRequestBody{}
-	err := json.NewDecoder(r.Body).Decode(&userDtoRequest)
+	userDto := dto.UserPost{}
+	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
 		// handle error here
 	}
-	var userDto = createUserPostFromPostUsersRequestObject(&userDtoRequest)
 	userEntity := entity.User{}
 	userDto.MapTo(&userEntity)
 	err = h.sv.CreateUser(r.Context(), &userEntity)
 	if err != nil {
 		// handle error here
-	}
-}
-
-func createUserPostFromPostUsersRequestObject(s *handler.PostUsersJSONRequestBody) *dto.UserPost {
-	return &dto.UserPost{
-		Name:  s.Name,
-		Email: string(s.Email),
-		// Phone:   s.Phone,
-		// Address: s.Address,
 	}
 }
 
@@ -85,7 +74,7 @@ func createUserPostFromPostUsersRequestObject(s *handler.PostUsersJSONRequestBod
 // 	return err
 // }
 
-func NewUserControler(sv userinport.UserService, logger userapioutbound.Logger) inbound.UserApi {
+func NewUserControler(sv domaininport.UserService, logger applicationoutbound.Logger) applicationinbound.UserApi {
 	return &user{
 		sv:     sv,
 		logger: logger,

@@ -2,13 +2,15 @@ package main
 
 import (
 	"net/http"
-	"user-domain/controller/handler"
-	usercontroler "user-domain/controller/user"
-	"user-domain/internal/outport"
-	"user-domain/internal/service"
+	userapplication "user-domain/internal/application/controller/user"
+	applicationlogger "user-domain/internal/application/logger"
+	applicationoutbound "user-domain/internal/application/outbound"
+	userrepository "user-domain/internal/application/repository/user"
+	userdomain "user-domain/internal/domain/user"
 	database "user-domain/pkg/db"
+	"user-domain/pkg/handler"
 	"user-domain/pkg/logger"
-	userrepo "user-domain/repository/user"
+	userpersistence "user-domain/pkg/persistence/user"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -41,16 +43,20 @@ func main() {
 	}
 }
 
-func buildUserSubRouter(r chi.Router, db *gorm.DB, logger outport.Logger) {
-	userRepo := userrepo.NewUserRepo(db)
-	userService := service.NewUserService(userRepo, logger)
-	userControler := usercontroler.NewUserControler(userService, logger)
+func buildUserSubRouter(r chi.Router, db *gorm.DB, logger applicationoutbound.Logger) {
+	userPersistence := userpersistence.NewUserRepo(db)
+	userRepo := userrepository.NewUserRepo(userPersistence)
+
+	applicationLogger := applicationlogger.NewLogger(logger)
+	userService := userdomain.NewUserService(userRepo, applicationLogger)
+
+	userControler := userapplication.NewUserControler(userService, logger)
 	handler.HandlerWithOptions(userControler, handler.ChiServerOptions{
 		BaseRouter: r,
 	})
 }
 
-func buidRouter(r chi.Router, db *gorm.DB, logger outport.Logger) {
+func buidRouter(r chi.Router, db *gorm.DB, logger applicationoutbound.Logger) {
 	r.Route("/api/v1", func(r chi.Router) {
 		buildUserSubRouter(r, db, logger)
 	})

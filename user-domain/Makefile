@@ -9,3 +9,6 @@ endef
 
 apigen: 
 	$(call _apigen,$(TAG))
+
+dbgen:
+	go run ./cmd/dbgen/main.go

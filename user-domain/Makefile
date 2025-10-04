@@ -12,3 +12,9 @@ apigen:
 
 dbgen:
 	go run ./cmd/dbgen/main.go
+
+up:
+	docker compose up -d
+
+down:
+	docker compose down

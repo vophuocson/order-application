@@ -2,12 +2,12 @@ package main
 
 import (
 	"net/http"
+	database "user-domain/db"
 	userapplication "user-domain/internal/application/controller/user"
 	applicationlogger "user-domain/internal/application/logger"
 	applicationoutbound "user-domain/internal/application/outbound"
 	userrepository "user-domain/internal/application/repository/user"
 	userdomain "user-domain/internal/domain/user"
-	database "user-domain/pkg/db"
 	"user-domain/pkg/handler"
 	"user-domain/pkg/logger"
 	userpersistence "user-domain/pkg/persistence/user"

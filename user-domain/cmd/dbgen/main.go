@@ -1,7 +1,7 @@
 package main
 
 import (
-	database "user-domain/pkg/db"
+	database "user-domain/db"
 
 	"github.com/pkg/errors"
 	"gorm.io/gen"
@@ -9,7 +9,7 @@ import (
 
 func main() {
 	cfg := gen.Config{
-		OutPath:          "../../repository/dao",
+		OutPath:          "./pgk/persistence/dao",
 		FieldWithTypeTag: true,
 		Mode:             gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface,
 	}

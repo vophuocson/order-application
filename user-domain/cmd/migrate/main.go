@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	database "user-domain/pkg/db"
+	database "user-domain/db"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"

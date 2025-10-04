@@ -40,7 +40,7 @@ func (db *dbConfig) GetSSLMode() string {
 }
 
 func (db *dbConfig) Load() error {
-	i, err := os.Open("../../pkg/db/.env")
+	i, err := os.Open(".env")
 	if err != nil {
 		return err
 	}

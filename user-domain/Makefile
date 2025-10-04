@@ -18,3 +18,6 @@ up:
 
 down:
 	docker compose down
+
+migrate:
+	go run ./cmd/migrate/main.go

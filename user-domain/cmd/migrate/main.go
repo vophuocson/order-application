@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://./ddl",
+		"file://./cmd/migrate/ddl",
 		"postgres", driver)
 	if err != nil {
 		log.Fatal(err.Error())

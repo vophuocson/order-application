@@ -43,14 +43,14 @@ func main() {
 	}
 }
 
-func buildUserSubRouter(r chi.Router, db *gorm.DB, logger applicationoutbound.Logger) {
+func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound applicationoutbound.Logger) {
 	userPersistence := userpersistence.NewUserRepo(db)
 	userRepo := userrepository.NewUserRepo(userPersistence)
 
-	applicationLogger := applicationlogger.NewLogger(logger)
-	userService := userdomain.NewUserService(userRepo, applicationLogger)
+	loggerOutport := applicationlogger.NewLogger(loggerOutbound)
+	userService := userdomain.NewUserService(userRepo, loggerOutport)
 
-	userControler := userapplication.NewUserControler(userService, logger)
+	userControler := userapplication.NewUserControler(userService, loggerOutbound)
 	handler.HandlerWithOptions(userControler, handler.ChiServerOptions{
 		BaseRouter: r,
 	})

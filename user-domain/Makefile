@@ -10,9 +10,9 @@ endef
 
 define _up
 	if [ "$(ENV)" = "production" ]; then \
-		docker compose up -d; \
+		docker compose up -d $(SERVICE); \
 	else \
-		docker compose --env-file .env up -d --build; \
+		docker compose --env-file .env up -d --build $(SERVICE); \
 	fi
 endef
 

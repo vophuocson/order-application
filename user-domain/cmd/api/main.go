@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"user-domain/config"
 	database "user-domain/db"
 	userapplication "user-domain/internal/application/controller/user"
 	applicationlogger "user-domain/internal/application/logger"
@@ -21,7 +22,8 @@ type Server struct {
 }
 
 func main() {
-	db, err := database.NewDatabase()
+	dbConfig := config.LoadConfig()
+	db, err := database.NewDatabase(dbConfig)
 	if err != nil {
 		panic(err.Error())
 	}

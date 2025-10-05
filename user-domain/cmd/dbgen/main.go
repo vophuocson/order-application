@@ -1,6 +1,7 @@
 package main
 
 import (
+	"user-domain/config"
 	database "user-domain/db"
 
 	"github.com/pkg/errors"
@@ -15,7 +16,8 @@ func main() {
 	}
 	g := gen.NewGenerator(cfg)
 
-	db, err := database.NewDatabase()
+	dbConfig := config.LoadConfig()
+	db, err := database.NewDatabase(dbConfig)
 	if err != nil {
 		panic(errors.Wrap(err, "Connect database failed"))
 	}

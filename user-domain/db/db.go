@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-	config "user-domain/configs"
+	"user-domain/config"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -16,19 +16,18 @@ type Database interface {
 	GetConnect() *sql.DB
 }
 
-type databse struct {
-	cfg  config.DBConfig
+type database struct {
 	conn *sql.DB
 }
 
-func (db *databse) GetConnect() *sql.DB {
+func (db *database) GetConnect() *sql.DB {
 	return db.conn
 }
 
-func (db *databse) GetConnection() *sql.DB {
+func (db *database) GetConnection() *sql.DB {
 	return db.conn
 }
-func (db *databse) NewGorm() (*gorm.DB, error) {
+func (db *database) NewGorm() (*gorm.DB, error) {
 
 	psgConfig := postgres.Config{
 		Conn: db.conn,
@@ -37,20 +36,21 @@ func (db *databse) NewGorm() (*gorm.DB, error) {
 	return gorm.Open(dialector, nil)
 }
 
-func NewDatabase() (Database, error) {
-	cfg := config.NewConfig()
-	cfg.Load()
-	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", cfg.GetHostName(), cfg.GetPort(), cfg.GetUser(), cfg.GetDBName(), cfg.GetPassword(), cfg.GetSSLMode())
+func NewDatabase(cfg *config.Config) (Database, error) {
+	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresDatabase, cfg.PostgresPassword, cfg.PostgresSSLMode)
 	conn, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
+	}
+	err = conn.Ping()
+	if err != nil {
+		println("ping err :", err.Error())
 	}
 	conn.SetMaxOpenConns(10)
 	conn.SetMaxIdleConns(5)
 	conn.SetConnMaxLifetime(time.Hour * 24)
 	conn.SetConnMaxIdleTime(time.Hour * 12)
-	return &databse{
-		cfg:  cfg,
+	return &database{
 		conn: conn,
 	}, nil
 }

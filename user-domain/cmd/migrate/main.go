@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"user-domain/config"
 	database "user-domain/db"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -10,7 +11,8 @@ import (
 )
 
 func main() {
-	db, err := database.NewDatabase()
+	dbConfig := config.LoadConfig()
+	db, err := database.NewDatabase(dbConfig)
 	if err != nil {
 		panic("error connects database")
 	}

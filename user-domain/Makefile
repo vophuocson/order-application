@@ -1,3 +1,4 @@
+ENV ?= development
 API_DOC_DIR := ./schemas
 API_DOC := $(API_DOC_DIR)/build-bundle/$(TAG).yaml
 OUTPUT_DIR := ./pkg/handler
@@ -13,11 +14,18 @@ apigen:
 dbgen:
 	go run ./cmd/dbgen/main.go
 
+migrate:
+	go run ./cmd/migrate/main.go
+
+build:
+	docker compose build
+
 up:
+ifeq ($(ENV),production)
 	docker compose up -d
+else
+	docker compose --env-file .env up -d --build
+endif
 
 down:
 	docker compose down
-
-migrate:
-	go run ./cmd/migrate/main.go

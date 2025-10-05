@@ -11,6 +11,7 @@ type Config struct {
 	PostgresPassword string
 	PostgresSSLMode  string
 	PostgresPort     string
+	ApiPort          string
 }
 
 func LoadConfig() *Config {
@@ -21,6 +22,7 @@ func LoadConfig() *Config {
 		PostgresPassword: os.Getenv("SECRET_POSTGRES_PASSWORD"),
 		PostgresSSLMode:  os.Getenv("SECRET_POSTGRES_SSL_MODE"),
 		PostgresPort:     os.Getenv("SECRET_POSTGRES_PORT"),
+		ApiPort:          os.Getenv("API_PORT"),
 	}
 
 	return cfg

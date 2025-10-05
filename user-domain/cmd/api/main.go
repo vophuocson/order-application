@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 	"user-domain/config"
 	database "user-domain/db"
 	userapplication "user-domain/internal/application/controller/user"
@@ -22,8 +24,8 @@ type Server struct {
 }
 
 func main() {
-	dbConfig := config.LoadConfig()
-	db, err := database.NewDatabase(dbConfig)
+	cfg := config.LoadConfig()
+	db, err := database.NewDatabase(cfg)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -36,7 +38,11 @@ func main() {
 	buidRouter(r, gorm, logger)
 	s := Server{
 		httpServer: &http.Server{
-			Handler: r,
+			Handler:      r,
+			Addr:         fmt.Sprintf(":%s", cfg.ApiPort),
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+			IdleTimeout:  120 * time.Second,
 		},
 	}
 	err = s.httpServer.ListenAndServe()

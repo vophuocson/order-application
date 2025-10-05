@@ -1,6 +1,6 @@
 ENV ?= development
 API_DOC_DIR := ./schemas
-API_DOC := $(API_DOC_DIR)/build-bundle/$(TAG).yaml
+API_DOC := $(API_DOC_DIR)/build-bundle/$(TAG)/index.yaml
 OUTPUT_DIR := ./pkg/handler
 CONFIG_FILE:=$(API_DOC_DIR)/oapi-codegen.yaml
 
@@ -16,14 +16,18 @@ define _up
 	fi
 endef
 
-apigen: 
-	$(call _apigen,$(TAG))
+migrate:
+	go run ./cmd/migrate/main.go
+
 
 dbgen:
 	go run ./cmd/dbgen/main.go
 
-migrate:
-	go run ./cmd/migrate/main.go
+apigen: 
+	$(call _apigen,$(TAG))
+
+bundle_schemas:
+	swagger-cli bundle schemas/$(TAG)/index.yaml --outfile ./schemas/build-bundle/$(TAG)/index.yaml --type yaml
 
 build:
 	docker compose build

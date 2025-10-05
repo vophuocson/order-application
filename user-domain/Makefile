@@ -8,6 +8,14 @@ define _apigen
 	oapi-codegen -config=$(CONFIG_FILE) -include-tags="$(1)" $(API_DOC) > $(OUTPUT_DIR)/$(1).gen.go
 endef
 
+define _up
+	if [ "$(ENV)" = "production" ]; then \
+		docker compose up -d; \
+	else \
+		docker compose --env-file .env up -d --build; \
+	fi
+endef
+
 apigen: 
 	$(call _apigen,$(TAG))
 
@@ -21,11 +29,7 @@ build:
 	docker compose build
 
 up:
-ifeq ($(ENV),production)
-	docker compose up -d
-else
-	docker compose --env-file .env up -d --build
-endif
+	$(call _up)
 
 down:
 	docker compose down

@@ -6,18 +6,8 @@ import (
 	"time"
 	"user-domain/config"
 	database "user-domain/db"
+	router "user-domain/infrastructure/http"
 	"user-domain/infrastructure/logger"
-	userpersistence "user-domain/infrastructure/persistence/user"
-	userapplication "user-domain/internal/application/controller/user"
-	applicationlogger "user-domain/internal/application/logger"
-	applicationoutbound "user-domain/internal/application/outbound"
-	userrepository "user-domain/internal/application/repository/user"
-	userdomain "user-domain/internal/domain/user"
-	"user-domain/pkg/handler"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"gorm.io/gorm"
 )
 
 type Server struct {
@@ -35,8 +25,7 @@ func main() {
 		panic(err.Error())
 	}
 	logger := logger.NewLogger()
-	r := chi.NewRouter()
-	buidRouter(r, gorm, logger)
+	r := router.BuildRouter(gorm, logger)
 	s := Server{
 		httpServer: &http.Server{
 			Handler:      r,
@@ -50,26 +39,4 @@ func main() {
 	if err != nil {
 		panic("error running server")
 	}
-}
-
-func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound applicationoutbound.Logger) {
-	userPersistence := userpersistence.NewUserRepo(db)
-	userRepo := userrepository.NewUserRepo(userPersistence)
-
-	loggerOutport := applicationlogger.NewLogger(loggerOutbound)
-	userService := userdomain.NewUserService(userRepo, loggerOutport)
-
-	userControler := userapplication.NewUserControler(userService, loggerOutbound)
-	handler.HandlerWithOptions(userControler, handler.ChiServerOptions{
-		BaseRouter: r,
-	})
-}
-
-func buidRouter(r chi.Router, db *gorm.DB, logger applicationoutbound.Logger) {
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RealIP)
-	r.Route("/api/v1", func(r chi.Router) {
-		buildUserSubRouter(r, db, logger)
-	})
 }

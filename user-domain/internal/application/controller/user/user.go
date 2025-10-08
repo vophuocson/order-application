@@ -20,13 +20,15 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 	userDto := dto.UserPost{}
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		// handle error here
+		h.logger.WithContext(r.Context()).Warnf(err.Error())
+		return
 	}
 	userEntity := entity.User{}
 	userDto.MapTo(&userEntity)
 	err = h.sv.CreateUser(r.Context(), &userEntity)
 	if err != nil {
-		// handle error here
+		h.logger.WithContext(r.Context()).Warnf(err.Error())
+		return
 	}
 }
 

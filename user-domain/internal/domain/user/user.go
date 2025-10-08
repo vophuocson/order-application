@@ -13,7 +13,6 @@ type user struct {
 }
 
 func (u *user) CreateUser(ctx context.Context, user *entity.User) error {
-	// implement bussiness logic here
 	err := u.repo.CreateUser(ctx, user)
 	return err
 }

@@ -1,7 +1,7 @@
 ENV ?= development
 API_DOC_DIR := ./schemas
 API_DOC := $(API_DOC_DIR)/build-bundle/$(TAG)/index.yaml
-OUTPUT_DIR := ./pkg/handler
+OUTPUT_DIR := ./infrastructure/http/handler
 CONFIG_FILE:=$(API_DOC_DIR)/oapi-codegen.yaml
 
 define _apigen

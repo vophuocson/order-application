@@ -1,6 +1,7 @@
 package http
 
 import (
+	"user-domain/infrastructure/http/handler"
 	"user-domain/infrastructure/http/middleware"
 	userpersistence "user-domain/infrastructure/persistence/user"
 	usercontroller "user-domain/internal/application/controller/user"
@@ -8,7 +9,6 @@ import (
 	applicationoutbound "user-domain/internal/application/outbound"
 	userrepository "user-domain/internal/application/repository/user"
 	userdomain "user-domain/internal/domain/user"
-	"user-domain/pkg/handler"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -37,6 +37,3 @@ func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound applicationout
 		BaseRouter: r,
 	})
 }
-
-// r := router.BuildRouter(gorm, logger)
-// 	router "user-domain/infrastructure/http"

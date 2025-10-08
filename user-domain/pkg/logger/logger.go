@@ -1,49 +1,63 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"os"
 	applicationoutbound "user-domain/internal/application/outbound"
 	domainoutport "user-domain/internal/domain/outport"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
+const (
+	requestID = "request_id"
+)
+
 type logger struct {
-	logger *zap.Logger
+	zap *zap.Logger
 }
 
 func (l *logger) Debug(message string, fs domainoutport.LogFields) {
-	l.logger.Debug(message, convertToZapField(fs)...)
+	l.zap.Debug(message, convertToZapField(fs)...)
 }
 
 func (l *logger) Debugf(format string, a ...any) {
-	l.logger.Debug(fmt.Sprintf(format, a...))
+	l.zap.Debug(fmt.Sprintf(format, a...))
 }
 
 func (l *logger) Info(message string, fs domainoutport.LogFields) {
-	l.logger.Info(message, convertToZapField(fs)...)
+	l.zap.Info(message, convertToZapField(fs)...)
 }
 
 func (l *logger) Infof(format string, a ...any) {
-	l.logger.Info(fmt.Sprintf(format, a...))
+	l.zap.Info(fmt.Sprintf(format, a...))
 }
 
 func (l *logger) Warn(message string, fs domainoutport.LogFields) {
-	l.logger.Warn(message, convertToZapField(fs)...)
+	l.zap.Warn(message, convertToZapField(fs)...)
 }
 
 func (l *logger) Warnf(format string, a ...any) {
-	l.logger.Warn(fmt.Sprintf(format, a...))
+	l.zap.Warn(fmt.Sprintf(format, a...))
 }
 
 func (l *logger) Error(message string, fs domainoutport.LogFields) {
-	l.logger.Error(message, convertToZapField(fs)...)
+	l.zap.Error(message, convertToZapField(fs)...)
 }
 
 func (l *logger) Errorf(format string, a ...any) {
-	l.logger.Error(fmt.Sprintf(format, a...))
+	l.zap.Error(fmt.Sprintf(format, a...))
+}
+
+func (l *logger) WithContext(ctx context.Context) applicationoutbound.Logger {
+	rID, ok := ctx.Value(middleware.GetReqID(ctx)).(string)
+	if !ok || rID == "" {
+		return l
+	}
+	return &logger{zap: l.zap.With(zap.String(requestID, rID))}
 }
 
 func convertToZapField(fs domainoutport.LogFields) []zap.Field {
@@ -67,7 +81,7 @@ func NewLogger() applicationoutbound.Logger {
 	jsonEndcoder := zapcore.NewJSONEncoder(configLog)
 	core := zapcore.NewCore(jsonEndcoder, os.Stdout, zap.DebugLevel)
 	logger := logger{
-		logger: zap.New(core),
+		zap: zap.New(core),
 	}
 	return &logger
 }

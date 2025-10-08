@@ -1,6 +1,7 @@
 package applicationlogger
 
 import (
+	"context"
 	applicationoutbound "user-domain/internal/application/outbound"
 	domainoutport "user-domain/internal/domain/outport"
 )
@@ -39,6 +40,11 @@ func (l *logger) Error(message string, fs domainoutport.LogFields) {
 
 func (l *logger) Errorf(format string, a ...any) {
 	l.outBound.Errorf(format, a)
+}
+
+func (l *logger) WithContext(ctx context.Context) domainoutport.Logger {
+	l.outBound.WithContext(ctx)
+	return l
 }
 
 func NewLogger(o applicationoutbound.Logger) domainoutport.Logger {

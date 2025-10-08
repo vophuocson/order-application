@@ -1,5 +1,7 @@
 package domainoutport
 
+import "context"
+
 type LogFields map[string]interface{}
 
 type Logger interface {
@@ -11,6 +13,5 @@ type Logger interface {
 	Warnf(format string, a ...any)
 	Error(message string, f LogFields)
 	Errorf(format string, a ...any)
-	// Sync() error
-	// WithContext(ctx context.Context) Logger
+	WithContext(ctx context.Context) Logger
 }

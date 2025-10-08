@@ -1,6 +1,9 @@
 package applicationoutbound
 
-import domainoutport "user-domain/internal/domain/outport"
+import (
+	"context"
+	domainoutport "user-domain/internal/domain/outport"
+)
 
 type Logger interface {
 	Debug(message string, f domainoutport.LogFields)
@@ -11,6 +14,5 @@ type Logger interface {
 	Warnf(format string, a ...any)
 	Error(message string, f domainoutport.LogFields)
 	Errorf(format string, a ...any)
-	// Sync() error
-	// WithContext(ctx context.Context) Logger
+	WithContext(ctx context.Context) Logger
 }

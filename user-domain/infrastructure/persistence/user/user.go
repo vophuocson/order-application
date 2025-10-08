@@ -2,10 +2,10 @@ package userpersistence
 
 import (
 	"context"
+	"user-domain/infrastructure/persistence/dao"
+	"user-domain/infrastructure/persistence/model"
 	applicationoutbound "user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
-	"user-domain/pkg/persistence/dao"
-	"user-domain/pkg/persistence/model"
 
 	"gorm.io/gorm"
 )

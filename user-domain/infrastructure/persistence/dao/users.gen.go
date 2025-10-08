@@ -7,7 +7,7 @@ package dao
 import (
 	"context"
 	"database/sql"
-	"user-domain/pkg/persistence/model"
+	"user-domain/infrastructure/persistence/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

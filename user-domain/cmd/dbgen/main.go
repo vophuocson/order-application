@@ -1,8 +1,8 @@
 package main
 
 import (
-	"user-domain/config"
 	database "user-domain/db"
+	"user-domain/infrastructure/config"
 
 	"github.com/pkg/errors"
 	"gorm.io/gen"

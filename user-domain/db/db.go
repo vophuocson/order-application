@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-	"user-domain/config"
+	"user-domain/infrastructure/config"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"

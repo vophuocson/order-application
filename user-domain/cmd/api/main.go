@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"user-domain/config"
 	database "user-domain/db"
+	"user-domain/infrastructure/config"
 	router "user-domain/infrastructure/http"
 	"user-domain/infrastructure/logger"
 )

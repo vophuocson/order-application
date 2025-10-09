@@ -3,7 +3,7 @@ package http
 import (
 	"user-domain/infrastructure/http/handler"
 	"user-domain/infrastructure/http/middleware"
-	userpersistence "user-domain/infrastructure/persistence/user"
+	userpersistence "user-domain/infrastructure/persistence/postgres/user"
 	usercontroller "user-domain/internal/application/controller/user"
 	applicationlogger "user-domain/internal/application/logger"
 	applicationoutbound "user-domain/internal/application/outbound"

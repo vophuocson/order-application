@@ -10,7 +10,7 @@ endef
 
 define _up
 	if [ "$(ENV)" = "production" ]; then \
-		docker compose up -d $(SERVICE); \
+		docker compose up -d; \
 	else \
 		docker compose --env-file .env up -d --build $(SERVICE); \
 	fi
@@ -18,7 +18,6 @@ endef
 
 migrate:
 	go run ./cmd/migrate/main.go
-
 
 dbgen:
 	go run ./cmd/dbgen/main.go

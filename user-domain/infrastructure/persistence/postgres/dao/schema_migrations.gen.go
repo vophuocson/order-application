@@ -6,8 +6,6 @@ package dao
 
 import (
 	"context"
-	"database/sql"
-	"user-domain/infrastructure/persistence/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -17,12 +15,14 @@ import (
 	"gorm.io/gen/field"
 
 	"gorm.io/plugin/dbresolver"
+
+	"user-domain/infrastructure/persistence/postgres/model"
 )
 
-func newSchemaMigration(db *gorm.DB, opts ...gen.DOOption) schemaMigration {
+func newSchemaMigration(db *gorm.DB) schemaMigration {
 	_schemaMigration := schemaMigration{}
 
-	_schemaMigration.schemaMigrationDo.UseDB(db, opts...)
+	_schemaMigration.schemaMigrationDo.UseDB(db)
 	_schemaMigration.schemaMigrationDo.UseModel(&model.SchemaMigration{})
 
 	tableName := _schemaMigration.schemaMigrationDo.TableName()
@@ -81,11 +81,6 @@ func (s *schemaMigration) fillFieldMap() {
 }
 
 func (s schemaMigration) clone(db *gorm.DB) schemaMigration {
-	s.schemaMigrationDo.ReplaceConnPool(db.Statement.ConnPool)
-	return s
-}
-
-func (s schemaMigration) replaceDB(db *gorm.DB) schemaMigration {
 	s.schemaMigrationDo.ReplaceDB(db)
 	return s
 }
@@ -97,11 +92,7 @@ type ISchemaMigrationDo interface {
 	Debug() ISchemaMigrationDo
 	WithContext(ctx context.Context) ISchemaMigrationDo
 	WithResult(fc func(tx gen.Dao)) gen.ResultInfo
-	ReplaceDB(db *gorm.DB)
-	ReadDB() ISchemaMigrationDo
-	WriteDB() ISchemaMigrationDo
 	As(alias string) gen.Dao
-	Session(config *gorm.Session) ISchemaMigrationDo
 	Columns(cols ...field.Expr) gen.Columns
 	Clauses(conds ...clause.Expression) ISchemaMigrationDo
 	Not(conds ...gen.Condition) ISchemaMigrationDo
@@ -147,8 +138,6 @@ type ISchemaMigrationDo interface {
 	FirstOrCreate() (*model.SchemaMigration, error)
 	FindByPage(offset int, limit int) (result []*model.SchemaMigration, count int64, err error)
 	ScanByPage(result interface{}, offset int, limit int) (count int64, err error)
-	Rows() (*sql.Rows, error)
-	Row() *sql.Row
 	Scan(result interface{}) (err error)
 	Returning(value interface{}, columns ...string) ISchemaMigrationDo
 	UnderlyingDB() *gorm.DB
@@ -169,10 +158,6 @@ func (s schemaMigrationDo) ReadDB() ISchemaMigrationDo {
 
 func (s schemaMigrationDo) WriteDB() ISchemaMigrationDo {
 	return s.Clauses(dbresolver.Write)
-}
-
-func (s schemaMigrationDo) Session(config *gorm.Session) ISchemaMigrationDo {
-	return s.withDO(s.DO.Session(config))
 }
 
 func (s schemaMigrationDo) Clauses(conds ...clause.Expression) ISchemaMigrationDo {
@@ -197,6 +182,10 @@ func (s schemaMigrationDo) Select(conds ...field.Expr) ISchemaMigrationDo {
 
 func (s schemaMigrationDo) Where(conds ...gen.Condition) ISchemaMigrationDo {
 	return s.withDO(s.DO.Where(conds...))
+}
+
+func (s schemaMigrationDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) ISchemaMigrationDo {
+	return s.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (s schemaMigrationDo) Order(conds ...field.Expr) ISchemaMigrationDo {

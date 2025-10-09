@@ -1,7 +1,7 @@
 package userpersistence
 
 import (
-	"user-domain/infrastructure/persistence/model"
+	"user-domain/infrastructure/persistence/postgres/model"
 	"user-domain/internal/entity"
 )
 

@@ -322,6 +322,8 @@ gorm.io/driver/postgres v1.3.4/go.mod h1:y0vEuInFKJtijuSGu9e5bs5hzzSzPK+LancpKpv
 gorm.io/driver/postgres v1.3.8/go.mod h1:qB98Aj6AhRO/oyu/jmZsi/YM9g6UzVCjMxO/6frFvcA=
 gorm.io/driver/postgres v1.4.0 h1:T7bwWckm12pmPgwPbUB5fAax7rr0D7uHE7tvFXBFGh8=
 gorm.io/driver/postgres v1.4.0/go.mod h1:whNfh5WhhHs96honoLjBAMwJGYEuA3m1hvgUbNXhPCw=
+gorm.io/driver/postgres v1.4.2 h1:XVKXNzljQ1z0Xop2eDrVYqj9pLu28c+E3hfusJftezY=
+gorm.io/driver/postgres v1.4.2/go.mod h1:whNfh5WhhHs96honoLjBAMwJGYEuA3m1hvgUbNXhPCw=
 gorm.io/driver/sqlite v1.1.6/go.mod h1:W8LmC/6UvVbHKah0+QOC7Ja66EaZXHwUTjgXY8YNWX8=
 gorm.io/driver/sqlite v1.3.1/go.mod h1:wJx0hJspfycZ6myN38x1O/AqLtNS6c5o9TndewFbELg=
 gorm.io/driver/sqlite v1.3.5 h1:VmtQcbtN13YCUy8QNpKBBYklH0LMO7yQcmFGvRIJ/ws=

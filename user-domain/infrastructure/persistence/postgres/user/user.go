@@ -2,8 +2,8 @@ package userpersistence
 
 import (
 	"context"
-	"user-domain/infrastructure/persistence/dao"
-	"user-domain/infrastructure/persistence/model"
+	"user-domain/infrastructure/persistence/postgres/dao"
+	"user-domain/infrastructure/persistence/postgres/model"
 	applicationoutbound "user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
 

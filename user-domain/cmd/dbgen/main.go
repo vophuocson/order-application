@@ -10,7 +10,7 @@ import (
 
 func main() {
 	cfg := gen.Config{
-		OutPath:          "./pgk/persistence/dao",
+		OutPath:          "./infrastructure/persistence/postgres/dao",
 		FieldWithTypeTag: true,
 		Mode:             gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface,
 	}
@@ -19,12 +19,17 @@ func main() {
 	dbConfig := config.LoadConfig()
 	db, err := database.NewDatabase(dbConfig)
 	if err != nil {
-		panic(errors.Wrap(err, "Connect database failed"))
+		panic(errors.Wrap(err, "connect database failed"))
 	}
 	gorm, err := db.NewGorm()
 	if err != nil {
-		panic(errors.Wrap(err, "Connect database failed"))
+		panic(errors.Wrap(err, "init gorm failed"))
 	}
+	g.WithDataTypeMap(map[string]func(detailType string) (dataType string){
+		"uuid": func(detailType string) (dataType string) {
+			return "string"
+		},
+	})
 
 	g.UseDB(gorm)
 	g.ApplyBasic(g.GenerateAllTable()...)

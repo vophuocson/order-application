@@ -9,10 +9,6 @@ import (
 	"database/sql"
 
 	"gorm.io/gorm"
-
-	"gorm.io/gen"
-
-	"gorm.io/plugin/dbresolver"
 )
 
 var (
@@ -21,17 +17,17 @@ var (
 	User            *user
 )
 
-func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
-	*Q = *Use(db, opts...)
+func SetDefault(db *gorm.DB) {
+	*Q = *Use(db)
 	SchemaMigration = &Q.SchemaMigration
 	User = &Q.User
 }
 
-func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
+func Use(db *gorm.DB) *Query {
 	return &Query{
 		db:              db,
-		SchemaMigration: newSchemaMigration(db, opts...),
-		User:            newUser(db, opts...),
+		SchemaMigration: newSchemaMigration(db),
+		User:            newUser(db),
 	}
 }
 
@@ -52,22 +48,6 @@ func (q *Query) clone(db *gorm.DB) *Query {
 	}
 }
 
-func (q *Query) ReadDB() *Query {
-	return q.ReplaceDB(q.db.Clauses(dbresolver.Read))
-}
-
-func (q *Query) WriteDB() *Query {
-	return q.ReplaceDB(q.db.Clauses(dbresolver.Write))
-}
-
-func (q *Query) ReplaceDB(db *gorm.DB) *Query {
-	return &Query{
-		db:              db,
-		SchemaMigration: q.SchemaMigration.replaceDB(db),
-		User:            q.User.replaceDB(db),
-	}
-}
-
 type queryCtx struct {
 	SchemaMigration ISchemaMigrationDo
 	User            IUserDo
@@ -85,14 +65,10 @@ func (q *Query) Transaction(fc func(tx *Query) error, opts ...*sql.TxOptions) er
 }
 
 func (q *Query) Begin(opts ...*sql.TxOptions) *QueryTx {
-	tx := q.db.Begin(opts...)
-	return &QueryTx{Query: q.clone(tx), Error: tx.Error}
+	return &QueryTx{q.clone(q.db.Begin(opts...))}
 }
 
-type QueryTx struct {
-	*Query
-	Error error
-}
+type QueryTx struct{ *Query }
 
 func (q *QueryTx) Commit() error {
 	return q.db.Commit().Error

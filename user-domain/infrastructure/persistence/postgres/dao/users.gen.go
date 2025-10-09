@@ -6,8 +6,6 @@ package dao
 
 import (
 	"context"
-	"database/sql"
-	"user-domain/infrastructure/persistence/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -17,12 +15,14 @@ import (
 	"gorm.io/gen/field"
 
 	"gorm.io/plugin/dbresolver"
+
+	"user-domain/infrastructure/persistence/postgres/model"
 )
 
-func newUser(db *gorm.DB, opts ...gen.DOOption) user {
+func newUser(db *gorm.DB) user {
 	_user := user{}
 
-	_user.userDo.UseDB(db, opts...)
+	_user.userDo.UseDB(db)
 	_user.userDo.UseModel(&model.User{})
 
 	tableName := _user.userDo.TableName()
@@ -101,11 +101,6 @@ func (u *user) fillFieldMap() {
 }
 
 func (u user) clone(db *gorm.DB) user {
-	u.userDo.ReplaceConnPool(db.Statement.ConnPool)
-	return u
-}
-
-func (u user) replaceDB(db *gorm.DB) user {
 	u.userDo.ReplaceDB(db)
 	return u
 }
@@ -117,11 +112,7 @@ type IUserDo interface {
 	Debug() IUserDo
 	WithContext(ctx context.Context) IUserDo
 	WithResult(fc func(tx gen.Dao)) gen.ResultInfo
-	ReplaceDB(db *gorm.DB)
-	ReadDB() IUserDo
-	WriteDB() IUserDo
 	As(alias string) gen.Dao
-	Session(config *gorm.Session) IUserDo
 	Columns(cols ...field.Expr) gen.Columns
 	Clauses(conds ...clause.Expression) IUserDo
 	Not(conds ...gen.Condition) IUserDo
@@ -167,8 +158,6 @@ type IUserDo interface {
 	FirstOrCreate() (*model.User, error)
 	FindByPage(offset int, limit int) (result []*model.User, count int64, err error)
 	ScanByPage(result interface{}, offset int, limit int) (count int64, err error)
-	Rows() (*sql.Rows, error)
-	Row() *sql.Row
 	Scan(result interface{}) (err error)
 	Returning(value interface{}, columns ...string) IUserDo
 	UnderlyingDB() *gorm.DB
@@ -189,10 +178,6 @@ func (u userDo) ReadDB() IUserDo {
 
 func (u userDo) WriteDB() IUserDo {
 	return u.Clauses(dbresolver.Write)
-}
-
-func (u userDo) Session(config *gorm.Session) IUserDo {
-	return u.withDO(u.DO.Session(config))
 }
 
 func (u userDo) Clauses(conds ...clause.Expression) IUserDo {
@@ -217,6 +202,10 @@ func (u userDo) Select(conds ...field.Expr) IUserDo {
 
 func (u userDo) Where(conds ...gen.Condition) IUserDo {
 	return u.withDO(u.DO.Where(conds...))
+}
+
+func (u userDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) IUserDo {
+	return u.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
 func (u userDo) Order(conds ...field.Expr) IUserDo {

@@ -14,7 +14,7 @@ const TableNameUser = "users"
 
 // User mapped from table <users>
 type User struct {
-	ID        string         `gorm:"column:id;type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	ID        string         `gorm:"column:id;type:uuid;primaryKey" json:"id"`
 	CreatedAt time.Time      `gorm:"column:created_at;type:timestamp without time zone;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time      `gorm:"column:updated_at;type:timestamp without time zone;not null;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp without time zone" json:"deleted_at"`

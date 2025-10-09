@@ -19,6 +19,7 @@ func BuildRouter(db *gorm.DB, logger applicationoutbound.Logger) *chi.Mux {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RealIP)
+	r.Use(middleware.LoggingMiddleware(logger))
 	r.Route("/api/v1", func(r chi.Router) {
 		buildUserSubRouter(r, db, logger)
 	})

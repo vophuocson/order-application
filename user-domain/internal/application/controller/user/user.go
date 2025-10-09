@@ -7,6 +7,7 @@ import (
 	applicationinbound "user-domain/internal/application/inbound"
 	applicationoutbound "user-domain/internal/application/outbound"
 	domaininport "user-domain/internal/domain/inport"
+	domainoutport "user-domain/internal/domain/outport"
 
 	"user-domain/internal/entity"
 )
@@ -30,15 +31,8 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 		h.logger.WithContext(r.Context()).Warnf(err.Error())
 		return
 	}
-}
 
-// func (api *user) Create(userReq *dto.UserPost) error {
-// 	userEntity := entity.User{}
-// 	userReq.MapTo(&userEntity)
-// 	ctx := context.Background()
-// 	err := api.sv.CreateUser(ctx, &userEntity)
-// 	return err
-// }
+}
 
 // func (api *user) Update(userID string, userReq *dto.UserPut) error {
 // 	userEntity := entity.User{ID: userID}
@@ -48,16 +42,22 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 // 	return err
 // }
 
-// func (api *user) Get(userID string) (*dto.UserResponse, error) {
-// 	ctx := context.Background()
-// 	userEntity, err := api.sv.GetUserByID(ctx, userID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	res := dto.UserResponse{}
-// 	res.GetFrom(userEntity)
-// 	return &res, nil
-// }
+func (api *user) Get(w http.ResponseWriter, r *http.Request) {
+	var userID = r.PathValue("user_id")
+
+	userEntity, err := api.sv.GetUserByID(r.Context(), userID)
+	if err != nil {
+		api.logger.WithContext(r.Context()).Error("error log", domainoutport.LogFields{})
+		return
+	}
+	res := dto.UserResponse{}
+	res.GetFrom(userEntity)
+	entityEncoding, err := json.Marshal(&res)
+	if err != nil {
+		api.logger.WithContext(r.Context()).Error("err", domainoutport.LogFields{})
+	}
+	w.Write(entityEncoding)
+}
 
 // func (api *user) List(offset int, limit int) (*dto.UsersResponse, error) {
 // 	ctx := context.Background()

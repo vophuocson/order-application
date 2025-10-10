@@ -3,11 +3,11 @@ package usercontroller
 import (
 	"encoding/json"
 	"net/http"
+	"user-domain/internal/application/controller/apiutil"
 	"user-domain/internal/application/controller/user/dto"
 	applicationinbound "user-domain/internal/application/inbound"
 	applicationoutbound "user-domain/internal/application/outbound"
 	domaininport "user-domain/internal/domain/inport"
-	domainoutport "user-domain/internal/domain/outport"
 
 	"user-domain/internal/entity"
 )
@@ -18,20 +18,21 @@ type user struct {
 }
 
 func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
+	responseWriter := apiutil.NewJSONResponse(w, r, h.logger)
 	userDto := dto.UserPost{}
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		h.logger.WithContext(r.Context()).Warnf(err.Error())
+		responseWriter.Failure(err)
 		return
 	}
 	userEntity := entity.User{}
 	userDto.MapTo(&userEntity)
 	err = h.sv.CreateUser(r.Context(), &userEntity)
 	if err != nil {
-		h.logger.WithContext(r.Context()).Warnf(err.Error())
+		responseWriter.Failure(err)
 		return
 	}
-
+	responseWriter.Success(http.StatusOK, nil)
 }
 
 // func (api *user) Update(userID string, userReq *dto.UserPut) error {
@@ -43,20 +44,17 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 // }
 
 func (api *user) Get(w http.ResponseWriter, r *http.Request) {
+	responseWriter := apiutil.NewJSONResponse(w, r, api.logger)
 	var userID = r.PathValue("user_id")
 
 	userEntity, err := api.sv.GetUserByID(r.Context(), userID)
 	if err != nil {
-		api.logger.WithContext(r.Context()).Error("error log", domainoutport.LogFields{})
+		responseWriter.Failure(err)
 		return
 	}
 	res := dto.UserResponse{}
 	res.GetFrom(userEntity)
-	entityEncoding, err := json.Marshal(&res)
-	if err != nil {
-		api.logger.WithContext(r.Context()).Error("err", domainoutport.LogFields{})
-	}
-	w.Write(entityEncoding)
+	responseWriter.Success(http.StatusOK, res)
 }
 
 // func (api *user) List(offset int, limit int) (*dto.UsersResponse, error) {

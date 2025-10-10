@@ -10,36 +10,20 @@ type logger struct {
 	outBound applicationoutbound.Logger
 }
 
-func (l *logger) Debug(message string, fs domainoutport.LogFields) {
+func (l *logger) Debug(message string, fs ...any) {
 	l.outBound.Debug(message, fs)
 }
 
-func (l *logger) Debugf(format string, a ...any) {
-	l.outBound.Debugf(format, a)
-}
-
-func (l *logger) Info(message string, fs domainoutport.LogFields) {
+func (l *logger) Info(message string, fs ...any) {
 	l.outBound.Info(message, fs)
 }
 
-func (l *logger) Infof(format string, a ...any) {
-	l.outBound.Infof(format, a)
-}
-
-func (l *logger) Warn(message string, fs domainoutport.LogFields) {
+func (l *logger) Warn(message string, fs ...any) {
 	l.outBound.Warn(message, fs)
 }
 
-func (l *logger) Warnf(format string, a ...any) {
-	l.outBound.Warnf(format, a)
-}
-
-func (l *logger) Error(message string, fs domainoutport.LogFields) {
+func (l *logger) Error(message string, fs ...any) {
 	l.outBound.Error(message, fs)
-}
-
-func (l *logger) Errorf(format string, a ...any) {
-	l.outBound.Errorf(format, a)
 }
 
 func (l *logger) WithContext(ctx context.Context) domainoutport.Logger {

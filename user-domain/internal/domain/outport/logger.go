@@ -1,17 +1,10 @@
 package domainoutport
 
-import "context"
-
 type LogFields map[string]interface{}
 
 type Logger interface {
-	Debug(message string, f LogFields)
-	Debugf(format string, a ...any)
-	Info(message string, f LogFields)
-	Infof(format string, a ...any)
-	Warn(message string, f LogFields)
-	Warnf(format string, a ...any)
-	Error(message string, f LogFields)
-	Errorf(format string, a ...any)
-	WithContext(ctx context.Context) Logger
+	Debug(format string, a ...any)
+	Info(format string, a ...any)
+	Warn(format string, a ...any)
+	Error(format string, a ...any)
 }

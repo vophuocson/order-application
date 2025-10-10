@@ -2,17 +2,12 @@ package applicationoutbound
 
 import (
 	"context"
-	domainoutport "user-domain/internal/domain/outport"
 )
 
 type Logger interface {
-	Debug(message string, f domainoutport.LogFields)
-	Debugf(format string, a ...any)
-	Info(message string, f domainoutport.LogFields)
-	Infof(format string, a ...any)
-	Warn(message string, f domainoutport.LogFields)
-	Warnf(format string, a ...any)
-	Error(message string, f domainoutport.LogFields)
-	Errorf(format string, a ...any)
+	Debug(format string, a ...any)
+	Info(format string, a ...any)
+	Warn(format string, a ...any)
+	Error(format string, a ...any)
 	WithContext(ctx context.Context) Logger
 }

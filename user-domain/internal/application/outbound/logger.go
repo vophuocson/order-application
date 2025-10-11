@@ -10,4 +10,5 @@ type Logger interface {
 	Warn(format string, a ...any)
 	Error(format string, a ...any)
 	WithContext(ctx context.Context) Logger
+	Sync()
 }

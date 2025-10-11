@@ -25,6 +25,8 @@ func main() {
 		panic(err.Error())
 	}
 	logger := logger.NewLogger()
+	// flush buffer before exiting
+	defer logger.Sync()
 	r := router.BuildRouter(gorm, logger)
 	s := Server{
 		httpServer: &http.Server{

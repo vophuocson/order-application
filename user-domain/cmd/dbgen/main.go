@@ -3,6 +3,7 @@ package main
 import (
 	database "user-domain/db"
 	"user-domain/infrastructure/config"
+	"user-domain/infrastructure/logger"
 
 	"github.com/pkg/errors"
 	"gorm.io/gen"
@@ -21,7 +22,9 @@ func main() {
 	if err != nil {
 		panic(errors.Wrap(err, "connect database failed"))
 	}
-	gorm, err := db.NewGorm()
+	logger := logger.NewLogger()
+
+	gorm, err := db.NewGorm(logger)
 	if err != nil {
 		panic(errors.Wrap(err, "init gorm failed"))
 	}

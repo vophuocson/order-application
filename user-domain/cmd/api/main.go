@@ -20,11 +20,11 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	gorm, err := db.NewGorm()
+	logger := logger.NewLogger()
+	gorm, err := db.NewGorm(logger)
 	if err != nil {
 		panic(err.Error())
 	}
-	logger := logger.NewLogger()
 	// flush buffer before exiting
 	defer logger.Sync()
 	r := router.BuildRouter(gorm, logger)

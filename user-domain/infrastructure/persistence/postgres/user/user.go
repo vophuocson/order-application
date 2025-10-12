@@ -7,6 +7,7 @@ import (
 	applicationoutbound "user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,7 @@ type userRepo struct {
 
 func (d *userRepo) CreateUser(ctx context.Context, user *entity.User) error {
 	u := CreateRepoEntityFromUserEntity(user)
+	u.ID = uuid.NewString()
 	userQery := d.query.User
 	return userQery.WithContext(ctx).Create(u)
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	applicationoutbound "user-domain/internal/application/outbound"
-	domainoutport "user-domain/internal/domain/outport"
+	domainerror "user-domain/internal/domain/error"
 
 	"github.com/pkg/errors"
 )
@@ -13,6 +13,11 @@ import (
 type JSONResponse interface {
 	Success(status int, response interface{}) error
 	Failure(err error)
+}
+
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 type jsonResponse struct {
@@ -65,7 +70,24 @@ func responseNil(status int, response interface{}) (int, []byte, error) {
 	return status, nil, nil
 }
 
-func (v *jsonResponse) Failure(e error) {
-	v.logger.Info(e.Error(), domainoutport.LogFields{})
+func (v *jsonResponse) Failure(err error) {
 	v.w.WriteHeader(http.StatusBadRequest)
+	var code int
+	switch {
+	case errors.Is(err, domainerror.ErrCodeNotFound):
+		code = http.StatusNotFound
+	case errors.Is(err, domainerror.ErrCodeConflict):
+		code = http.StatusConflict
+	case errors.Is(err, domainerror.ErrCodeInvalidInput):
+		code = http.StatusBadRequest
+	case errors.Is(err, domainerror.ErrCodeForbidden):
+		code = http.StatusForbidden
+	default:
+		code = http.StatusInternalServerError
+	}
+
+	_ = json.NewEncoder(v.w).Encode(ErrorResponse{
+		Code:    code,
+		Message: err.Error(),
+	})
 }

@@ -2,8 +2,10 @@ package userpersistence
 
 import (
 	"context"
+	"fmt"
 	"user-domain/infrastructure/persistence/postgres/dao"
 	"user-domain/infrastructure/persistence/postgres/model"
+	persistenceutil "user-domain/infrastructure/persistence/util"
 	applicationoutbound "user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
 
@@ -19,7 +21,11 @@ func (d *userRepo) CreateUser(ctx context.Context, user *entity.User) error {
 	u := CreateRepoEntityFromUserEntity(user)
 	u.ID = uuid.NewString()
 	userQery := d.query.User
-	return userQery.WithContext(ctx).Create(u)
+	err := userQery.WithContext(ctx).Create(u)
+	if err != nil {
+		return fmt.Errorf("create user with email %s: %s %w", user.Email, err.Error(), persistenceutil.MapErrorToHTTPStatus(err))
+	}
+	return nil
 }
 
 func (d *userRepo) UpdateUser(ctx context.Context, user *entity.User) error {
@@ -45,7 +51,7 @@ func (d *userRepo) GetUserByID(ctx context.Context, id string) (*entity.User, er
 	userQery := d.query.User
 	userM, err := userQery.Where(userQery.ID.Eq(id)).First()
 	if err != nil {
-		return nil, nil
+		return nil, fmt.Errorf("get user with id %s: %s %w", id, err.Error(), persistenceutil.MapErrorToHTTPStatus(err))
 	}
 	return CreateUserEntityFromUserModel(userM), nil
 }

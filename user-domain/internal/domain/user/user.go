@@ -14,16 +14,18 @@ type user struct {
 
 func (u *user) CreateUser(ctx context.Context, user *entity.User) error {
 	err := u.repo.CreateUser(ctx, user)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u *user) GetUserByID(ctx context.Context, id string) (*entity.User, error) {
-	// implement bussiness logic here
 	userRes, err := u.repo.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return userRes, err
+	return userRes, nil
 }
 
 func (u *user) UpdateUser(ctx context.Context, user *entity.User) error {

@@ -86,6 +86,12 @@ func (v *jsonResponse) Failure(err error) {
 		code = http.StatusInternalServerError
 	}
 
+	if code == http.StatusInternalServerError {
+		v.logger.WithContext(v.request.Context()).Error("error: %s", err)
+	} else {
+		v.logger.WithContext(v.request.Context()).Warn("error: %s", err)
+	}
+
 	_ = json.NewEncoder(v.w).Encode(ErrorResponse{
 		Code:    code,
 		Message: err.Error(),

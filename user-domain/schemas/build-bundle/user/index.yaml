@@ -24,6 +24,37 @@ paths:
           description: Related resource not found
         '500':
           description: Internal server error
+  '/users/{user_id}':
+    get:
+      tags:
+        - user
+      summary: Get specific user
+      description: Api get user in the system
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPost'
+      responses:
+        '200':
+          description: Successfully retrieved user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request (missing or incorrect data)
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
 components:
   schemas:
     UserPost:
@@ -47,5 +78,33 @@ components:
           description: Address (optional)
           example: '123 Đường ABC, Quận 1, TP.HCM'
       required:
+        - name
+        - email
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID của user
+          example: 123e4567-e89b-12d3-a456-426614174000
+        name:
+          type: string
+          description: Tên người dùng
+          example: Nguyen Van A
+        email:
+          type: string
+          format: email
+          description: Địa chỉ email
+          example: vana@example.com
+        phone:
+          type: string
+          description: Số điện thoại
+          example: '+84901234567'
+        address:
+          type: string
+          description: Địa chỉ
+          example: '123 Đường ABC, Quận 1, TP.HCM'
+      required:
+        - id
         - name
         - email

@@ -25,8 +25,41 @@ paths:
           description: Related resource not found
         '500':
           description: Internal server error
+  /users/{user_id}:
+    get:
+      tags: 
+        - user
+      summary: Get specific user
+      description: Api get user in the system
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPost'
+      responses:
+        '200':
+          description: Successfully retrieved user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request (missing or incorrect data)
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
 
 components:
   schemas:
     UserPost:
       $ref: './request/user/post.yaml#/components/schemas/UserPost'
+    UserResponse:
+      $ref: './response/user.yaml#/components/schemas/UserResponse'

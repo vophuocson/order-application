@@ -32,7 +32,7 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 		responseWriter.Failure(err)
 		return
 	}
-	responseWriter.Success(http.StatusOK, nil)
+	responseWriter.Success(http.StatusCreated, nil)
 }
 
 // func (api *user) Update(userID string, userReq *dto.UserPut) error {
@@ -43,10 +43,8 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 // 	return err
 // }
 
-func (api *user) Get(w http.ResponseWriter, r *http.Request) {
+func (api *user) GetUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {
 	responseWriter := apiutil.NewJSONResponse(w, r, api.logger)
-	var userID = r.PathValue("user_id")
-
 	userEntity, err := api.sv.GetUserByID(r.Context(), userID)
 	if err != nil {
 		responseWriter.Failure(err)

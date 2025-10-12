@@ -33,12 +33,14 @@ func NewJSONResponse(w http.ResponseWriter, r *http.Request, log applicationoutb
 func (v *jsonResponse) Success(status int, response interface{}) error {
 	statusCode, body, err := responseNil(status, response)
 	if err != nil {
+		v.logger.WithContext(v.request.Context()).Error("apiutil: failed to marshal response: %w", err)
 		return fmt.Errorf("apiutil: failed to marshal response: %w", err)
 	}
 
 	v.w.WriteHeader(statusCode)
 	if body != nil {
 		if _, err := v.w.Write(body); err != nil {
+			v.logger.WithContext(v.request.Context()).Error("apiutil: failed to write body: %w", err)
 			return fmt.Errorf("apiutil: failed to write body: %w", err)
 		}
 	}
@@ -65,6 +67,5 @@ func responseNil(status int, response interface{}) (int, []byte, error) {
 
 func (v *jsonResponse) Failure(e error) {
 	v.logger.Info(e.Error(), domainoutport.LogFields{})
-
 	v.w.WriteHeader(http.StatusBadRequest)
 }

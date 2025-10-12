@@ -1,6 +1,6 @@
 components:
   schemas:
-    User:
+    UserResponse:
       type: object
       properties:
         id:

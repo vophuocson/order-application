@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"time"
 	applicationoutbound "user-domain/internal/application/outbound"
 	domainoutport "user-domain/internal/domain/outport"
 )
@@ -29,11 +30,17 @@ func (w *responseWriterWrapper) Status() int {
 func LoggingMiddleware(logger applicationoutbound.Logger) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logger.WithContext(r.Context()).Info("Start request", domainoutport.LogFields{
+				"method":      r.Method,
+				"request_url": r.URL,
+			})
 			wrapped := newResponseWriterWrapper(w)
-
-			defer func() {
-				logger.WithContext(r.Context()).Info("in", domainoutport.LogFields{})
-			}()
+			defer func(startTime time.Time) {
+				logger.WithContext(r.Context()).Info("end request", domainoutport.LogFields{
+					"status":   wrapped.Status(),
+					"duration": time.Since(startTime).Microseconds(),
+				})
+			}(time.Now())
 
 			h.ServeHTTP(wrapped, r)
 		})

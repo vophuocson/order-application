@@ -36,3 +36,6 @@ up:
 
 down:
 	docker compose down
+
+mock_domain:
+	mockery --all --dir=./internal/domain --disable-func-mocks=true --keeptree=true --recursive=true --output=./internal/domain/mocks --case=underscore --outpkg=domain_mock

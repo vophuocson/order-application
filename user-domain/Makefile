@@ -39,3 +39,6 @@ down:
 
 mock_domain:
 	mockery --all --dir=./internal/domain --disable-func-mocks=true --keeptree=true --recursive=true --output=./internal/domain/mocks --case=underscore --outpkg=domain_mock
+
+mock_application:
+	mockery --all --dir=./internal/application --disable-func-mocks=true --keeptree=true --recursive=true --output=./internal/application/mocks --case=underscore --outpkg=application_mock

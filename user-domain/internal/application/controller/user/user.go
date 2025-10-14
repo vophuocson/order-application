@@ -2,7 +2,6 @@ package usercontroller
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"user-domain/internal/application/controller/apiutil"
 	applicationparameter "user-domain/internal/application/controller/parameter"
@@ -25,7 +24,7 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 	userDto := dto.UserPost{}
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		responseWriter.Failure(fmt.Errorf(err.Error(), applicationerror.ErrDecode))
+		responseWriter.Failure(apiutil.WrapError(err, applicationerror.ErrDecode))
 		return
 	}
 	userEntity := entity.User{}
@@ -43,7 +42,7 @@ func (h *user) PutUsersUserId(w http.ResponseWriter, r *http.Request, userID str
 	userDto := dto.UserPut{}
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		responseWriter.Failure(fmt.Errorf(err.Error(), applicationerror.ErrDecode))
+		responseWriter.Failure(apiutil.WrapError(err, applicationerror.ErrDecode))
 		return
 	}
 	userEntity := entity.User{ID: userID}
@@ -52,7 +51,7 @@ func (h *user) PutUsersUserId(w http.ResponseWriter, r *http.Request, userID str
 	if err != nil {
 		responseWriter.Failure(err)
 	}
-	responseWriter.Success(http.StatusOK, nil)
+	responseWriter.Success(http.StatusNoContent, nil)
 }
 
 func (h *user) GetUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {

@@ -13,6 +13,11 @@ type ServerInterface struct {
 	mock.Mock
 }
 
+// DeleteUsersUserId provides a mock function with given fields: w, r, userId
+func (_m *ServerInterface) DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
+	_m.Called(w, r, userId)
+}
+
 // GetUsersUserId provides a mock function with given fields: w, r, userId
 func (_m *ServerInterface) GetUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
 	_m.Called(w, r, userId)

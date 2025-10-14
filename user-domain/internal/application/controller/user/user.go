@@ -66,6 +66,14 @@ func (h *user) GetUsersUserId(w http.ResponseWriter, r *http.Request, userID str
 	responseWriter.Success(http.StatusOK, res)
 }
 
+func (h *user) DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {
+	responseWriter := apiutil.NewJSONResponse(w, r, h.logger)
+	err := h.sv.DeleteUser(r.Context(), userID)
+	if err != nil {
+		responseWriter.Failure(err)
+	}
+}
+
 // func (api *user) List(offset int, limit int) (*dto.UsersResponse, error) {
 // 	ctx := context.Background()
 // 	eUsers, err := api.sv.ListUsers(ctx, offset, limit)

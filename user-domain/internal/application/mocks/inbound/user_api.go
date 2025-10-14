@@ -13,6 +13,11 @@ type UserApi struct {
 	mock.Mock
 }
 
+// DeleteUsersUserId provides a mock function with given fields: w, r, userId
+func (_m *UserApi) DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
+	_m.Called(w, r, userId)
+}
+
 // GetUsersUserId provides a mock function with given fields: w, r, userID
 func (_m *UserApi) GetUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {
 	_m.Called(w, r, userID)

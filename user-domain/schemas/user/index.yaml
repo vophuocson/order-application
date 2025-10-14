@@ -76,6 +76,26 @@ paths:
           description: User not found
         '500':
           description: Internal server error
+    delete:
+      tags: 
+        - user
+      summary: Delete specific user
+      description: Api delete user in the system
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved user
+        '400':
+          description: Invalid request (missing or incorrect data)
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
 
 components:
   schemas:

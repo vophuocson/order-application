@@ -24,6 +24,41 @@ paths:
           description: Related resource not found
         '500':
           description: Internal server error
+    get:
+      tags:
+        - user
+      summary: Get users
+      description: API get users in the system
+      parameters:
+        - name: offset
+          in: query
+          description: The number of items to skip before starting to collect the result set
+          required: false
+          schema:
+            type: integer
+            example: 0
+        - name: limit
+          in: query
+          description: The maximum number of users to return
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request (missing or incorrect data)
+        '404':
+          description: Related resource not found
+        '500':
+          description: Internal server error
   '/users/{user_id}':
     get:
       tags:

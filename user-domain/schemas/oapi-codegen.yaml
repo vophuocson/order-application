@@ -2,4 +2,6 @@ package: handler
 generate:
   # server-urls: true
   # models: true
-  chi-server: true
+  # chi-server: true
+  - types
+  - chi-server 

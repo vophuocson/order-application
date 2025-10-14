@@ -9,10 +9,74 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// UserPost defines model for UserPost.
+type UserPost struct {
+	// Address Address (optional)
+	Address *string `json:"address,omitempty"`
+
+	// Email Email address
+	Email openapi_types.Email `json:"email"`
+
+	// Name User name
+	Name string `json:"name"`
+
+	// Phone Phone number (optional)
+	Phone *string `json:"phone,omitempty"`
+}
+
+// UserPut defines model for UserPut.
+type UserPut struct {
+	// Address Address (optional)
+	Address *string `json:"address,omitempty"`
+
+	// Name User name
+	Name *string `json:"name,omitempty"`
+
+	// Phone Phone number (optional)
+	Phone *string `json:"phone,omitempty"`
+}
+
+// UserResponse defines model for UserResponse.
+type UserResponse struct {
+	// Address Địa chỉ
+	Address *string `json:"address,omitempty"`
+
+	// Email Địa chỉ email
+	Email openapi_types.Email `json:"email"`
+
+	// Id ID của user
+	Id string `json:"id"`
+
+	// Name Tên người dùng
+	Name string `json:"name"`
+
+	// Phone Số điện thoại
+	Phone *string `json:"phone,omitempty"`
+}
+
+// GetUsersParams defines parameters for GetUsers.
+type GetUsersParams struct {
+	// Offset The number of items to skip before starting to collect the result set
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
+
+	// Limit The maximum number of users to return
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// PostUsersJSONRequestBody defines body for PostUsers for application/json ContentType.
+type PostUsersJSONRequestBody = UserPost
+
+// PutUsersUserIdJSONRequestBody defines body for PutUsersUserId for application/json ContentType.
+type PutUsersUserIdJSONRequestBody = UserPut
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get users
+	// (GET /users)
+	GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams)
 	// Create a new user
 	// (POST /users)
 	PostUsers(w http.ResponseWriter, r *http.Request)
@@ -30,6 +94,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// Get users
+// (GET /users)
+func (_ Unimplemented) GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // Create a new user
 // (POST /users)
@@ -63,6 +133,41 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetUsers operation middleware
+func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUsersParams
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUsers(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // PostUsers operation middleware
 func (siw *ServerInterfaceWrapper) PostUsers(w http.ResponseWriter, r *http.Request) {
@@ -266,6 +371,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/users", wrapper.GetUsers)
+	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/users", wrapper.PostUsers)
 	})

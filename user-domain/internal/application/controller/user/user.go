@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"user-domain/internal/application/controller/apiutil"
+	applicationparameter "user-domain/internal/application/controller/parameter"
 	"user-domain/internal/application/controller/user/dto"
 	applicationerror "user-domain/internal/application/error"
 	applicationinbound "user-domain/internal/application/inbound"
@@ -74,22 +75,17 @@ func (h *user) DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userID 
 	}
 }
 
-// func (api *user) List(offset int, limit int) (*dto.UsersResponse, error) {
-// 	ctx := context.Background()
-// 	eUsers, err := api.sv.ListUsers(ctx, offset, limit)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	users := dto.UsersResponse{}
-// 	users.GetFrom(eUsers)
-// 	return &users, nil
-// }
-
-// func (api *user) Delete(userID string) error {
-// 	ctx := context.Background()
-// 	err := api.sv.DeleteUser(ctx, userID)
-// 	return err
-// }
+func (h *user) GetUsers(w http.ResponseWriter, r *http.Request, paramObj applicationparameter.UserQueryParams) {
+	responseWriter := apiutil.NewJSONResponse(w, r, h.logger)
+	eUsers, err := h.sv.ListUsers(r.Context(), paramObj.Offset, paramObj.Limit)
+	if err != nil {
+		responseWriter.Failure(err)
+		return
+	}
+	users := dto.UsersResponse{}
+	users.GetFrom(eUsers)
+	responseWriter.Success(http.StatusOK, users)
+}
 
 func NewUserControler(sv domaininport.UserService, logger applicationoutbound.Logger) applicationinbound.UserApi {
 	return &user{

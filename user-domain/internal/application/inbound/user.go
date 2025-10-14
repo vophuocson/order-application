@@ -2,6 +2,7 @@ package applicationinbound
 
 import (
 	"net/http"
+	applicationparameter "user-domain/internal/application/controller/parameter"
 )
 
 type UserApi interface {
@@ -9,5 +10,5 @@ type UserApi interface {
 	PutUsersUserId(w http.ResponseWriter, r *http.Request, userID string)
 	GetUsersUserId(w http.ResponseWriter, r *http.Request, userID string)
 	DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userId string)
-	// List(offset int, limit int) (*dto.UsersResponse, error)
+	GetUsers(w http.ResponseWriter, r *http.Request, paramObj applicationparameter.UserQueryParams)
 }

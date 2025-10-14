@@ -37,12 +37,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPost'
       responses:
         '200':
           description: Successfully retrieved user
@@ -56,10 +50,38 @@ paths:
           description: User not found
         '500':
           description: Internal server error
+    put:
+      tags: 
+        - user
+      summary: Update specific user
+      description: Api update user in the system
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPut'
+      responses:
+        '200':
+          description: Successfully retrieved user
+        '400':
+          description: Invalid request (missing or incorrect data)
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
 
 components:
   schemas:
     UserPost:
       $ref: './request/user/post.yaml#/components/schemas/UserPost'
+    UserPut:
+      $ref: './request/user/put.yaml#/components/schemas/UserPut'
     UserResponse:
       $ref: './response/user.yaml#/components/schemas/UserResponse'

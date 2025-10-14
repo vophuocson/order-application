@@ -2,9 +2,11 @@ package usercontroller
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"user-domain/internal/application/controller/apiutil"
 	"user-domain/internal/application/controller/user/dto"
+	applicationerror "user-domain/internal/application/error"
 	applicationinbound "user-domain/internal/application/inbound"
 	applicationoutbound "user-domain/internal/application/outbound"
 	domaininport "user-domain/internal/domain/inport"
@@ -22,8 +24,7 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 	userDto := dto.UserPost{}
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		h.logger.WithContext(r.Context()).Warn("error decode: %s", err)
-		responseWriter.Failure(err)
+		responseWriter.Failure(fmt.Errorf(err.Error(), applicationerror.ErrDecode))
 		return
 	}
 	userEntity := entity.User{}
@@ -36,17 +37,26 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 	responseWriter.Success(http.StatusCreated, nil)
 }
 
-// func (api *user) Update(userID string, userReq *dto.UserPut) error {
-// 	userEntity := entity.User{ID: userID}
-// 	userReq.MapTo(&userEntity)
-// 	ctx := context.Background()
-// 	err := api.sv.UpdateUser(ctx, &userEntity)
-// 	return err
-// }
+func (h *user) PutUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {
+	responseWriter := apiutil.NewJSONResponse(w, r, h.logger)
+	userDto := dto.UserPut{}
+	err := json.NewDecoder(r.Body).Decode(&userDto)
+	if err != nil {
+		responseWriter.Failure(fmt.Errorf(err.Error(), applicationerror.ErrDecode))
+		return
+	}
+	userEntity := entity.User{ID: userID}
+	userDto.MapTo(&userEntity)
+	err = h.sv.UpdateUser(r.Context(), &userEntity)
+	if err != nil {
+		responseWriter.Failure(err)
+	}
+	responseWriter.Success(http.StatusOK, nil)
+}
 
-func (api *user) GetUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {
-	responseWriter := apiutil.NewJSONResponse(w, r, api.logger)
-	userEntity, err := api.sv.GetUserByID(r.Context(), userID)
+func (h *user) GetUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {
+	responseWriter := apiutil.NewJSONResponse(w, r, h.logger)
+	userEntity, err := h.sv.GetUserByID(r.Context(), userID)
 	if err != nil {
 		responseWriter.Failure(err)
 		return

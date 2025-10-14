@@ -19,6 +19,9 @@ type ServerInterface interface {
 	// Get specific user
 	// (GET /users/{user_id})
 	GetUsersUserId(w http.ResponseWriter, r *http.Request, userId string)
+	// Update specific user
+	// (PUT /users/{user_id})
+	PutUsersUserId(w http.ResponseWriter, r *http.Request, userId string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -34,6 +37,12 @@ func (_ Unimplemented) PostUsers(w http.ResponseWriter, r *http.Request) {
 // Get specific user
 // (GET /users/{user_id})
 func (_ Unimplemented) GetUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update specific user
+// (PUT /users/{user_id})
+func (_ Unimplemented) PutUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -76,6 +85,31 @@ func (siw *ServerInterfaceWrapper) GetUsersUserId(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetUsersUserId(w, r, userId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutUsersUserId operation middleware
+func (siw *ServerInterfaceWrapper) PutUsersUserId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "user_id" -------------
+	var userId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "user_id", chi.URLParam(r, "user_id"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "user_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutUsersUserId(w, r, userId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -203,6 +237,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/users/{user_id}", wrapper.GetUsersUserId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/users/{user_id}", wrapper.PutUsersUserId)
 	})
 
 	return r

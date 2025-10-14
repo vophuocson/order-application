@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	applicationerror "user-domain/internal/application/error"
 	applicationoutbound "user-domain/internal/application/outbound"
 	domainerror "user-domain/internal/domain/error"
 
@@ -71,14 +72,14 @@ func responseNil(status int, response interface{}) (int, []byte, error) {
 }
 
 func (v *jsonResponse) Failure(err error) {
-	v.w.WriteHeader(http.StatusBadRequest)
 	var code int
 	switch {
 	case errors.Is(err, domainerror.ErrCodeNotFound):
 		code = http.StatusNotFound
 	case errors.Is(err, domainerror.ErrCodeConflict):
 		code = http.StatusConflict
-	case errors.Is(err, domainerror.ErrCodeInvalidInput):
+	case errors.Is(err, domainerror.ErrCodeInvalidInput),
+		errors.Is(err, applicationerror.ErrDecode):
 		code = http.StatusBadRequest
 	case errors.Is(err, domainerror.ErrCodeForbidden):
 		code = http.StatusForbidden
@@ -86,6 +87,7 @@ func (v *jsonResponse) Failure(err error) {
 		code = http.StatusInternalServerError
 	}
 
+	v.w.WriteHeader(code)
 	if code == http.StatusInternalServerError {
 		v.logger.WithContext(v.request.Context()).Error("error: %s", err)
 	} else {

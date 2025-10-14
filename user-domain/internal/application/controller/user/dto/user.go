@@ -20,7 +20,6 @@ func (u UserPost) MapTo(e *entity.User) {
 
 type UserPut struct {
 	Name    *string `json:"name,omitempty"`
-	Email   *string `json:"email,omitempty"`
 	Phone   *string `json:"phone,omitempty"`
 	Address *string `json:"address,omitempty"`
 }
@@ -28,9 +27,6 @@ type UserPut struct {
 func (u UserPut) MapTo(e *entity.User) {
 	if u.Name != nil {
 		e.Name = *u.Name
-	}
-	if u.Email != nil {
-		e.Email = *u.Email
 	}
 	if u.Phone != nil {
 		e.Phone = *u.Phone

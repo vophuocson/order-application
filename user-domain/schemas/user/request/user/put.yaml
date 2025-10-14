@@ -1,0 +1,17 @@
+components:
+  schemas:
+    UserPut:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User name
+          example: "Nguyen Van A"
+        phone:
+          type: string
+          description: Phone number (optional)
+          example: "+84901234567"
+        address:
+          type: string
+          description: Address (optional)
+          example: "123 Đường ABC, Quận 1, TP.HCM"

@@ -35,13 +35,10 @@ func (u *user) UpdateUser(ctx context.Context, user *entity.User) error {
 }
 
 func (u *user) DeleteUser(ctx context.Context, id string) error {
-	// implement bussiness logic here
-	err := u.repo.DeleteUser(ctx, id)
-	return err
+	return u.repo.DeleteUser(ctx, id)
 }
 
 func (u *user) ListUsers(ctx context.Context, offset, limit int) ([]*entity.User, error) {
-	// implement bussiness logic here
 	entities, err := u.repo.ListUsers(ctx, offset, limit)
 	if err != nil {
 		return nil, err

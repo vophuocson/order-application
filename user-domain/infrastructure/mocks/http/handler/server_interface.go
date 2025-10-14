@@ -23,6 +23,11 @@ func (_m *ServerInterface) PostUsers(w http.ResponseWriter, r *http.Request) {
 	_m.Called(w, r)
 }
 
+// PutUsersUserId provides a mock function with given fields: w, r, userId
+func (_m *ServerInterface) PutUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
+	_m.Called(w, r, userId)
+}
+
 // NewServerInterface creates a new instance of ServerInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewServerInterface(t interface {

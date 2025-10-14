@@ -23,6 +23,11 @@ func (_m *UserApi) PostUsers(w http.ResponseWriter, r *http.Request) {
 	_m.Called(w, r)
 }
 
+// PutUsersUserId provides a mock function with given fields: w, r, userID
+func (_m *UserApi) PutUsersUserId(w http.ResponseWriter, r *http.Request, userID string) {
+	_m.Called(w, r, userID)
+}
+
 // NewUserApi creates a new instance of UserApi. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserApi(t interface {

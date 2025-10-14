@@ -36,12 +36,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPost'
       responses:
         '200':
           description: Successfully retrieved user
@@ -49,6 +43,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request (missing or incorrect data)
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+    put:
+      tags:
+        - user
+      summary: Update specific user
+      description: Api update user in the system
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPut'
+      responses:
+        '200':
+          description: Successfully retrieved user
         '400':
           description: Invalid request (missing or incorrect data)
         '404':
@@ -80,6 +100,21 @@ components:
       required:
         - name
         - email
+    UserPut:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User name
+          example: Nguyen Van A
+        phone:
+          type: string
+          description: Phone number (optional)
+          example: '+84901234567'
+        address:
+          type: string
+          description: Address (optional)
+          example: '123 Đường ABC, Quận 1, TP.HCM'
     UserResponse:
       type: object
       properties:

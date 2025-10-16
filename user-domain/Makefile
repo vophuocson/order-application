@@ -38,10 +38,10 @@ down:
 	docker compose down
 
 mock_domain:
-	mockery --all --dir=./internal/domain --disable-func-mocks=true --keeptree=true --recursive=true --output=./internal/domain/mocks --case=underscore --outpkg=domain_mock
+	mockery --all --dir=./internal/domain --disable-func-mocks=true --keeptree=true --recursive=true --output=./internal/domain/mocks --case=underscore --outpkg=domainmock
 
 mock_application:
-	mockery --all --dir=./internal/application --disable-func-mocks=true --keeptree=true --recursive=true --output=./internal/application/mocks --case=underscore --outpkg=application_mock
+	mockery --all --dir=./internal/application --disable-func-mocks=true --keeptree=true --recursive=true --output=./internal/application/mocks --case=underscore --outpkg=applicationmock
 
 mock_infrastructure:
 	mockery --all --dir=./infrastructure --disable-func-mocks=true --keeptree=true --recursive=true --output=./infrastructure/mocks --case=underscore --outpkg=infrastructure_mock

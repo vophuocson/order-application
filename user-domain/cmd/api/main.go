@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	database "user-domain/db"
 	"user-domain/infrastructure/config"
+	"user-domain/infrastructure/database"
 	router "user-domain/infrastructure/http"
 	"user-domain/infrastructure/logger"
 )
@@ -16,12 +16,8 @@ type Server struct {
 
 func main() {
 	cfg := config.LoadConfig()
-	db, err := database.NewDatabase(cfg)
-	if err != nil {
-		panic(err.Error())
-	}
 	logger := logger.NewLogger()
-	gorm, err := db.NewGorm(logger)
+	gorm, err := database.NewGorm(cfg, logger)
 	if err != nil {
 		panic(err.Error())
 	}

@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	database "user-domain/db"
 	"user-domain/infrastructure/config"
+	"user-domain/infrastructure/database"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -12,11 +12,11 @@ import (
 
 func main() {
 	dbConfig := config.LoadConfig()
-	db, err := database.NewDatabase(dbConfig)
+	conn, err := database.NewDatabaseConection(dbConfig)
 	if err != nil {
 		panic("error connects database")
 	}
-	driver, err := postgres.WithInstance(db.GetConnect(), &postgres.Config{})
+	driver, err := postgres.WithInstance(conn, &postgres.Config{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}

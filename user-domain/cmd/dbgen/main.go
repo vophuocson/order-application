@@ -1,8 +1,8 @@
 package main
 
 import (
-	database "user-domain/db"
 	"user-domain/infrastructure/config"
+	"user-domain/infrastructure/database"
 	"user-domain/infrastructure/logger"
 
 	"github.com/pkg/errors"
@@ -18,13 +18,9 @@ func main() {
 	g := gen.NewGenerator(cfg)
 
 	dbConfig := config.LoadConfig()
-	db, err := database.NewDatabase(dbConfig)
-	if err != nil {
-		panic(errors.Wrap(err, "connect database failed"))
-	}
 	logger := logger.NewLogger()
 
-	gorm, err := db.NewGorm(logger)
+	gorm, err := database.NewGorm(dbConfig, logger)
 	if err != nil {
 		panic(errors.Wrap(err, "init gorm failed"))
 	}

@@ -1,4 +1,4 @@
-package usercontroller
+package controller
 
 import (
 	"bytes"

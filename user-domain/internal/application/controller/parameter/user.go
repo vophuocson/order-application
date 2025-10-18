@@ -1,4 +1,4 @@
-package applicationparameter
+package parameter
 
 type UserQueryParams struct {
 	Limit  int

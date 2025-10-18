@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 	"user-domain/infrastructure/config"
-	applicationoutbound "user-domain/internal/application/outbound"
+	"user-domain/internal/application/outbound"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -16,7 +16,7 @@ import (
 
 type gormLogger struct {
 	LogLevel logger.LogLevel
-	logger   applicationoutbound.Logger
+	logger   outbound.Logger
 }
 
 func (l *gormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
@@ -79,7 +79,7 @@ func NewDatabaseConection(cfg *config.Config) (*sql.DB, error) {
 	conn.SetConnMaxIdleTime(time.Hour * 12)
 	return conn, err
 }
-func NewGorm(cfg *config.Config, l applicationoutbound.Logger) (*gorm.DB, error) {
+func NewGorm(cfg *config.Config, l outbound.Logger) (*gorm.DB, error) {
 	conn, err := NewDatabaseConection(cfg)
 	if err != nil {
 		return nil, err

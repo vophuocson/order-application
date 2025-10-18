@@ -1,15 +1,15 @@
-package userdomain
+package user
 
 import (
 	"context"
-	domaininport "user-domain/internal/domain/inport"
-	domainoutport "user-domain/internal/domain/outport"
+	"user-domain/internal/domain/inport"
+	"user-domain/internal/domain/outport"
 	"user-domain/internal/entity"
 )
 
 type user struct {
-	repo   domainoutport.UserRepository
-	logger domainoutport.Logger
+	repo   outport.UserRepository
+	logger outport.Logger
 }
 
 func (u *user) CreateUser(ctx context.Context, user *entity.User) error {
@@ -46,6 +46,6 @@ func (u *user) ListUsers(ctx context.Context, offset, limit int) ([]*entity.User
 	return entities, nil
 }
 
-func NewUserService(r domainoutport.UserRepository, logger domainoutport.Logger) domaininport.UserService {
+func NewUserService(r outport.UserRepository, logger outport.Logger) inport.UserService {
 	return &user{repo: r, logger: logger}
 }

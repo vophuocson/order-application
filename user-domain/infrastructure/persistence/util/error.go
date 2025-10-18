@@ -1,4 +1,4 @@
-package persistenceutil
+package util
 
 import (
 	"errors"

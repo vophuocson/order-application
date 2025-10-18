@@ -1,22 +1,22 @@
-package usercontroller
+package controller
 
 import (
 	"encoding/json"
 	"net/http"
 	"user-domain/internal/application/controller/apiutil"
-	applicationparameter "user-domain/internal/application/controller/parameter"
+	"user-domain/internal/application/controller/parameter"
 	"user-domain/internal/application/controller/user/dto"
-	applicationerror "user-domain/internal/application/error"
-	applicationinbound "user-domain/internal/application/inbound"
-	applicationoutbound "user-domain/internal/application/outbound"
-	domaininport "user-domain/internal/domain/inport"
+	apperror "user-domain/internal/application/error"
+	"user-domain/internal/application/inbound"
+	"user-domain/internal/application/outbound"
+	"user-domain/internal/domain/inport"
 
 	"user-domain/internal/entity"
 )
 
 type user struct {
-	sv     domaininport.UserService
-	logger applicationoutbound.Logger
+	sv     inport.UserService
+	logger outbound.Logger
 }
 
 func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +24,7 @@ func (h *user) PostUsers(w http.ResponseWriter, r *http.Request) {
 	userDto := dto.UserPost{}
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		responseWriter.Failure(apiutil.WrapError(err, applicationerror.ErrDecode))
+		responseWriter.Failure(apiutil.WrapError(err, apperror.ErrDecode))
 		return
 	}
 	userEntity := entity.User{}
@@ -42,7 +42,7 @@ func (h *user) PutUsersUserId(w http.ResponseWriter, r *http.Request, userID str
 	userDto := dto.UserPut{}
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		responseWriter.Failure(apiutil.WrapError(err, applicationerror.ErrDecode))
+		responseWriter.Failure(apiutil.WrapError(err, apperror.ErrDecode))
 		return
 	}
 	userEntity := entity.User{ID: userID}
@@ -74,7 +74,7 @@ func (h *user) DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userID 
 	}
 }
 
-func (h *user) GetUsers(w http.ResponseWriter, r *http.Request, paramObj applicationparameter.UserQueryParams) {
+func (h *user) GetUsers(w http.ResponseWriter, r *http.Request, paramObj parameter.UserQueryParams) {
 	responseWriter := apiutil.NewJSONResponse(w, r, h.logger)
 	eUsers, err := h.sv.ListUsers(r.Context(), paramObj.Offset, paramObj.Limit)
 	if err != nil {
@@ -86,7 +86,7 @@ func (h *user) GetUsers(w http.ResponseWriter, r *http.Request, paramObj applica
 	responseWriter.Success(http.StatusOK, users)
 }
 
-func NewUserControler(sv domaininport.UserService, logger applicationoutbound.Logger) applicationinbound.UserApi {
+func NewUserControler(sv inport.UserService, logger outbound.Logger) inbound.UserApi {
 	return &user{
 		sv:     sv,
 		logger: logger,

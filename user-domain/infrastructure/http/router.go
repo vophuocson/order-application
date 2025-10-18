@@ -4,20 +4,20 @@ import (
 	"net/http"
 	"user-domain/infrastructure/http/handler"
 	"user-domain/infrastructure/http/middleware"
-	userpersistence "user-domain/infrastructure/persistence/postgres/user"
-	applicationparameter "user-domain/internal/application/controller/parameter"
-	usercontroller "user-domain/internal/application/controller/user"
-	applicationinbound "user-domain/internal/application/inbound"
-	applicationlogger "user-domain/internal/application/logger"
-	applicationoutbound "user-domain/internal/application/outbound"
-	userrepository "user-domain/internal/application/repository/user"
-	userdomain "user-domain/internal/domain/user"
+	postgresuser "user-domain/infrastructure/persistence/postgres/user"
+	"user-domain/internal/application/controller/parameter"
+	controlleruser "user-domain/internal/application/controller/user"
+	"user-domain/internal/application/inbound"
+	"user-domain/internal/application/logger"
+	"user-domain/internal/application/outbound"
+	repositoryuser "user-domain/internal/application/repository/user"
+	domainuser "user-domain/internal/domain/user"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
-func BuildRouter(db *gorm.DB, logger applicationoutbound.Logger) *chi.Mux {
+func BuildRouter(db *gorm.DB, logger outbound.Logger) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
@@ -29,14 +29,14 @@ func BuildRouter(db *gorm.DB, logger applicationoutbound.Logger) *chi.Mux {
 	return r
 }
 
-func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound applicationoutbound.Logger) {
-	userPersistence := userpersistence.NewUserRepo(db)
-	userRepo := userrepository.NewUserRepo(userPersistence)
+func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound outbound.Logger) {
+	userPersistence := postgresuser.NewUserRepo(db)
+	userRepo := repositoryuser.NewUserRepo(userPersistence)
 
-	loggerOutport := applicationlogger.NewLogger(loggerOutbound)
-	userService := userdomain.NewUserService(userRepo, loggerOutport)
+	loggerOutport := logger.NewLogger(loggerOutbound)
+	userService := domainuser.NewUserService(userRepo, loggerOutport)
 
-	userControler := usercontroller.NewUserControler(userService, loggerOutbound)
+	userControler := controlleruser.NewUserControler(userService, loggerOutbound)
 
 	handler.HandlerWithOptions(&userControllerWrap{UserApi: userControler}, handler.ChiServerOptions{
 		BaseRouter: r,
@@ -44,11 +44,11 @@ func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound applicationout
 }
 
 type userControllerWrap struct {
-	applicationinbound.UserApi
+	inbound.UserApi
 }
 
 func (cW *userControllerWrap) GetUsers(w http.ResponseWriter, r *http.Request, params handler.GetUsersParams) {
-	cW.UserApi.GetUsers(w, r, applicationparameter.UserQueryParams{
+	cW.UserApi.GetUsers(w, r, parameter.UserQueryParams{
 		Limit:  *params.Limit,
 		Offset: *params.Offset,
 	})

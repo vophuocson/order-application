@@ -1,13 +1,13 @@
-package applicationlogger
+package logger
 
 import (
 	"context"
-	applicationoutbound "user-domain/internal/application/outbound"
-	domainoutport "user-domain/internal/domain/outport"
+	"user-domain/internal/application/outbound"
+	"user-domain/internal/domain/outport"
 )
 
 type logger struct {
-	outBound applicationoutbound.Logger
+	outBound outbound.Logger
 }
 
 func (l *logger) Debug(message string, fs ...any) {
@@ -26,12 +26,12 @@ func (l *logger) Error(message string, fs ...any) {
 	l.outBound.Error(message, fs)
 }
 
-func (l *logger) WithContext(ctx context.Context) domainoutport.Logger {
+func (l *logger) WithContext(ctx context.Context) outport.Logger {
 	l.outBound.WithContext(ctx)
 	return l
 }
 
-func NewLogger(o applicationoutbound.Logger) domainoutport.Logger {
+func NewLogger(o outbound.Logger) outport.Logger {
 	return &logger{
 		outBound: o,
 	}

@@ -1,4 +1,4 @@
-package userpersistence
+package postgres
 
 import (
 	"user-domain/infrastructure/persistence/postgres/model"

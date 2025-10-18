@@ -1,12 +1,12 @@
-package userpersistence
+package postgres
 
 import (
 	"context"
 	"fmt"
 	"user-domain/infrastructure/persistence/postgres/dao"
 	"user-domain/infrastructure/persistence/postgres/model"
-	persistenceutil "user-domain/infrastructure/persistence/util"
-	applicationoutbound "user-domain/internal/application/outbound"
+	"user-domain/infrastructure/persistence/util"
+	"user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
 
 	"github.com/google/uuid"
@@ -23,7 +23,7 @@ func (d *userRepo) CreateUser(ctx context.Context, user *entity.User) error {
 	userQery := d.query.User
 	err := userQery.WithContext(ctx).Create(u)
 	if err != nil {
-		return fmt.Errorf("create user with email %s: %s %w", user.Email, err.Error(), persistenceutil.MapErrorToHTTPStatus(err))
+		return fmt.Errorf("create user with email %s: %s %w", user.Email, err.Error(), util.MapErrorToHTTPStatus(err))
 	}
 	return nil
 }
@@ -51,7 +51,7 @@ func (d *userRepo) GetUserByID(ctx context.Context, id string) (*entity.User, er
 	userQery := d.query.User
 	userM, err := userQery.Where(userQery.ID.Eq(id)).First()
 	if err != nil {
-		return nil, fmt.Errorf("get user with id %s: %s %w", id, err.Error(), persistenceutil.MapErrorToHTTPStatus(err))
+		return nil, fmt.Errorf("get user with id %s: %s %w", id, err.Error(), util.MapErrorToHTTPStatus(err))
 	}
 	return CreateUserEntityFromUserModel(userM), nil
 }
@@ -65,7 +65,7 @@ func (d *userRepo) ListUsers(ctx context.Context, offset, limit int) ([]*entity.
 	return CreateUsersEntityFromUsesrModel(usersModel), nil
 }
 
-func NewUserRepo(db *gorm.DB) applicationoutbound.UserRepo {
+func NewUserRepo(db *gorm.DB) outbound.UserRepo {
 	query := dao.Use(db)
 	return &userRepo{
 		query: *query,

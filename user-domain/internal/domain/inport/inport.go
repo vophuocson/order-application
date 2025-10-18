@@ -1,4 +1,4 @@
-package domaininport
+package inport
 
 import (
 	"context"

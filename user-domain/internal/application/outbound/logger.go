@@ -1,4 +1,4 @@
-package applicationoutbound
+package outbound
 
 import (
 	"context"

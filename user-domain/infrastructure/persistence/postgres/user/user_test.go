@@ -1,4 +1,4 @@
-package userpersistence_test
+package postgres_test
 
 import (
 	"errors"

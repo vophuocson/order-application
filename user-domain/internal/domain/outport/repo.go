@@ -1,4 +1,4 @@
-package domainoutport
+package outport
 
 import (
 	"context"

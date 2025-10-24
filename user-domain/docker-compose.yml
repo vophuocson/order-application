@@ -1,33 +1,66 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:16
-    restart: always
+    image: postgres:16-alpine
+    container_name: user-api-db
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${SECRET_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${SECRET_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${SECRET_POSTGRES_DATABASE}
+      POSTGRES_USER: ${SECRET_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${SECRET_POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${SECRET_POSTGRES_DATABASE:-userdb}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8"
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./cmd/migrate/ddl:/docker-entrypoint-initdb.d:ro
+    networks:
+      - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${SECRET_POSTGRES_USER}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${SECRET_POSTGRES_USER:-postgres} -d ${SECRET_POSTGRES_DATABASE:-userdb}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   app:
     build:
-      context: .          # directory containing Dockerfile
+      context: .
       dockerfile: Dockerfile
-    container_name: order-server
+      args:
+        - GO_VERSION=1.23
+    image: user-api:latest
+    container_name: user-api-app
+    restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${API_PORT:-8080}:8080"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - API_PORT=8080
+      - SECRET_POSTGRES_HOSTNAME=db
+      - SECRET_POSTGRES_PORT=5432
+      - SECRET_POSTGRES_DATABASE=${SECRET_POSTGRES_DATABASE:-userdb}
+      - SECRET_POSTGRES_USER=${SECRET_POSTGRES_USER:-postgres}
+      - SECRET_POSTGRES_PASSWORD=${SECRET_POSTGRES_PASSWORD:-postgres}
+      - SECRET_POSTGRES_SSL_MODE=${SECRET_POSTGRES_SSL_MODE:-disable}
     depends_on:
       db:
         condition: service_healthy
-    env_file:
-    - .env
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 volumes:
   pgdata:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
 

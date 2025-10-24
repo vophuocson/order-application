@@ -1,0 +1,43 @@
+# Copy this file to terraform.tfvars and update with your values
+
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Project Configuration
+project_name = "user-api"
+environment  = "prod"
+
+# Network Configuration
+vpc_cidr        = "10.0.0.0/16"
+enable_flow_logs = false
+
+# ECS Configuration
+container_image   = "user-api:latest"  # Will be replaced with ECR URL after first push
+container_port    = 8080
+ecs_task_cpu      = 512
+ecs_task_memory   = 1024
+ecs_desired_count = 2
+ecs_min_capacity  = 1
+ecs_max_capacity  = 10
+
+# Health Check
+health_check_path = "/health"
+
+# SSL/TLS (optional - provide ACM certificate ARN)
+certificate_arn = ""
+
+# Logging
+log_retention_days = 7
+
+# RDS Configuration
+rds_instance_class          = "db.t3.micro"
+rds_allocated_storage       = 20
+rds_max_allocated_storage   = 100
+rds_engine_version          = "16.3"
+rds_database_name           = "userdb"
+rds_username                = "postgres"
+rds_backup_retention_period = 7
+rds_multi_az                = false  # Set to true for production
+rds_skip_final_snapshot     = false  # Set to false for production
+
+

@@ -1,29 +1,49 @@
 # Stage 1: Build binary
-FROM golang:1.24.3 AS builder
+FROM golang:1.23-alpine AS builder
 
-# Set working directory inside the container
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata
+
+# Set working directory
 WORKDIR /app
 
-# Copy go.mod and go.sum first for dependency caching
+# Copy go mod files
 COPY go.mod go.sum ./
-RUN go mod download
 
-# Copy the entire source code
+# Download dependencies
+RUN go mod download && go mod verify
+
+# Copy source code
 COPY . .
 
-# Build the Go binary
-RUN go build -o server ./cmd/api
+# Build the application with optimizations
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -a \
+    -o server \
+    ./cmd/api
 
-# Stage 2: Run the binary in a lightweight image
-FROM debian:bookworm-slim
+# Stage 2: Create minimal runtime image
+FROM scratch
 
-WORKDIR /app
+# Copy CA certificates for HTTPS requests
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Copy the binary from the builder stage
-COPY --from=builder /app/server .
+# Copy timezone data
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
-# Expose port (for example: 8080)
+# Copy the binary
+COPY --from=builder /app/server /server
+
+# Create non-root user
+USER 65534:65534
+
+# Expose port
 EXPOSE 8080
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["/server", "-health-check"] || exit 1
+
 # Run the application
-CMD ["./server"]
+ENTRYPOINT ["/server"]

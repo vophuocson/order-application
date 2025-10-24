@@ -1,4 +1,4 @@
 variable "bucket_name" {
-  type = string
+  type        = string
   description = "The bucket that store the states of terraform"
 }

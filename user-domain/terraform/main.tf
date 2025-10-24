@@ -44,7 +44,7 @@ data "aws_availability_zones" "available" {
 locals {
   name = "${var.project_name}-${var.environment}"
   azs  = slice(data.aws_availability_zones.available.names, 0, 3)
-  
+
   common_tags = {
     Name        = local.name
     Environment = var.environment
@@ -70,11 +70,11 @@ module "networking" {
 module "database" {
   source = "./modules/database"
 
-  project_name              = var.project_name
-  environment               = var.environment
-  vpc_id                    = module.networking.vpc_id
+  project_name               = var.project_name
+  environment                = var.environment
+  vpc_id                     = module.networking.vpc_id
   database_subnet_group_name = module.networking.database_subnet_group_name
-  
+
   # Allow access from ECS security group
   allowed_security_group_ids = [module.ecs.ecs_security_group_id]
 
@@ -91,6 +91,42 @@ module "database" {
   tags = local.common_tags
 }
 
+# ECR Module
+module "image_repo" {
+  source = "./modules/image-repo"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  tags = local.common_tags
+}
+
+# CloudWatch Log Module
+module "log" {
+  source = "./modules/log"
+
+  project_name       = var.project_name
+  environment        = var.environment
+  log_retention_days = var.log_retention_days
+
+  tags = local.common_tags
+}
+
+# ALB Module
+module "alb" {
+  source = "./modules/alb"
+
+  project_name      = var.project_name
+  environment       = var.environment
+  vpc_id            = module.networking.vpc_id
+  public_subnet_ids = module.networking.public_subnet_ids
+  container_port    = var.container_port
+  health_check_path = var.health_check_path
+  certificate_arn   = var.certificate_arn
+
+  tags = local.common_tags
+}
+
 # ECS Module
 module "ecs" {
   source = "./modules/ecs"
@@ -98,19 +134,21 @@ module "ecs" {
   project_name       = var.project_name
   environment        = var.environment
   vpc_id             = module.networking.vpc_id
-  public_subnet_ids  = module.networking.public_subnet_ids
   private_subnet_ids = module.networking.private_subnet_ids
 
-  container_image   = var.container_image
-  container_port    = var.container_port
-  task_cpu          = var.ecs_task_cpu
-  task_memory       = var.ecs_task_memory
-  desired_count     = var.ecs_desired_count
-  min_capacity      = var.ecs_min_capacity
-  max_capacity      = var.ecs_max_capacity
-  health_check_path = var.health_check_path
-  certificate_arn   = var.certificate_arn
-  log_retention_days = var.log_retention_days
+  container_image       = var.container_image
+  container_port        = var.container_port
+  task_cpu              = var.ecs_task_cpu
+  task_memory           = var.ecs_task_memory
+  desired_count         = var.ecs_desired_count
+  min_capacity          = var.ecs_min_capacity
+  max_capacity          = var.ecs_max_capacity
+  health_check_path     = var.health_check_path
+  cloudwatch_log_group  = module.log.log_group_name
+  lb_target_group       = module.alb.target_group_arn
+  ecs_cluster_id        = module.alb.ecs_cluster_id
+  ecs_cluster_name      = module.alb.ecs_cluster_name
+  ecs_security_group_id = module.alb.ecs_security_group_id
 
   environment_variables = [
     {

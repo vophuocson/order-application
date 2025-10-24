@@ -1,11 +1,11 @@
 variable "project_name" {
   description = "Project name"
-  type = string
+  type        = string
 }
 
 variable "environment" {
   description = "Environment name"
-  type = string
+  type        = string
 }
 
 
@@ -30,39 +30,39 @@ variable "container_image" {
 }
 
 variable "container_port" {
-  type = number
+  type        = number
   description = "Container port"
-  default = 8080
+  default     = 8080
 }
 
 variable "task_cpu" {
   description = "Task CPU units"
-  type = number
-  default = 512
+  type        = number
+  default     = 512
 }
 
 variable "task_memory" {
   description = "Task memory in MB"
-  type = number
-  default = 1024
+  type        = number
+  default     = 1024
 }
 
-variable "desired_cou t" {
+variable "desired_count" {
   description = "Desired number of tasks"
-  type = number
-  default = 2
+  type        = number
+  default     = 2
 }
 
 variable "min_capacity" {
   description = "Minimum capacity for autoscaling"
-  type = number
-  default = 1
+  type        = number
+  default     = 1
 }
 
 variable "max_capacity" {
   description = "Maximum capacity for autoscaling"
-  type = number
-  default = 10
+  type        = number
+  default     = 10
 }
 
 
@@ -75,23 +75,11 @@ variable "health_check_path" {
 variable "environment_variables" {
   description = "Environment variables for container"
   type = list(object({
-    name = string
+    name  = string
     value = string
   }))
   default = []
 }
-
-variable "secret" {
-  description = "Secrets from AWS Secrets Manager"
-  type = list(object({
-    name = string
-    valueFrom = string
-  }))
-  default = []
-}
-
-
-
 
 variable "secrets" {
   description = "Secrets from AWS Secrets Manager"
@@ -102,13 +90,6 @@ variable "secrets" {
   default = []
 }
 
-
-variable "desired_count" {
-  description = "Desired number of tasks"
-  type        = number
-  default     = 2
-}
-
 variable "tags" {
   description = "Additional tags"
   type        = map(string)
@@ -116,11 +97,26 @@ variable "tags" {
 }
 
 variable "cloudwatch_log_group" {
-  type = string
+  type        = string
   description = "aws cloudwatch loggroup"
 }
 
 variable "lb_target_group" {
-  type = string
+  type        = string
   description = "aws lb target group"
+}
+
+variable "ecs_cluster_id" {
+  type        = string
+  description = "ECS Cluster ID"
+}
+
+variable "ecs_cluster_name" {
+  type        = string
+  description = "ECS Cluster name"
+}
+
+variable "ecs_security_group_id" {
+  type        = string
+  description = "ECS Task Security Group ID"
 }

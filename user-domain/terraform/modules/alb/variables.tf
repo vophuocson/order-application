@@ -1,11 +1,11 @@
 variable "project_name" {
   description = "Project name"
-  type = string
+  type        = string
 }
 
 variable "environment" {
   description = "Environment name"
-  type = string
+  type        = string
 }
 
 
@@ -26,9 +26,9 @@ variable "public_subnet_ids" {
 }
 
 variable "container_port" {
-  type = number
+  type        = number
   description = "Container port"
-  default = 8080
+  default     = 8080
 }
 
 variable "certificate_arn" {

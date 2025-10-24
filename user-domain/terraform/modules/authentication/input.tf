@@ -5,8 +5,8 @@ data "tls_certificate" "github" {
 variable "allowed_repos_branches" {
   description = "GitHub repos/branches allowed to assume the IAM role."
   type = list(object({
-    org = string
-    repo = string
+    org     = string
+    repo    = string
     branche = string
   }))
 }

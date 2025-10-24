@@ -3,7 +3,7 @@ locals {
 }
 
 resource "aws_cloudwatch_log_group" "app" {
-  name = "ecs/${local.name}"
+  name              = "ecs/${local.name}"
   retention_in_days = var.log_retention_days
-  tags = var.tags
+  tags              = var.tags
 }

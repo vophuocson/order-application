@@ -1,5 +1,8 @@
 {
   "cSpell.words": [
-    "hostnames"
+    "appautoscaling",
+    "cooldown",
+    "hostnames",
+    "loggroup"
   ]
 }

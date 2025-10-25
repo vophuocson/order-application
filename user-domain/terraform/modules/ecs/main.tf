@@ -2,6 +2,21 @@ locals {
   name = "${var.project_name}-${var.environment}"
 }
 
+
+resource "aws_ecs_cluster" "main" {
+  name = local.name
+  configuration {
+    execute_command_configuration {
+      logging = "DEFAULT"
+    }
+  }
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+  tags = var.tags
+}
+
 resource "aws_iam_role" "ecs_task_execution" {
   name_prefix = "${local.name}-ecs-task-execution-"
 

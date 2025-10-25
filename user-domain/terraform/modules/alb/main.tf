@@ -2,31 +2,17 @@ locals {
   name = "${var.project_name}-${var.environment}"
 }
 
-resource "aws_ecs_cluster" "main" {
-  name = local.name
-  configuration {
-    execute_command_configuration {
-      logging = "DEFAULT"
-    }
-  }
-  setting {
-    name  = "containerInsights"
-    value = "enabled"
-  }
-  tags = var.tags
-}
-
 resource "aws_security_group" "alb" {
   name_prefix = "${local.name}-alb-"
   description = "Security group for Application Load Balancer"
   vpc_id      = var.vpc_id
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP from anywhere"
-  }
+  # ingress {
+  #   from_port   = 80
+  #   to_port     = 80
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  #   description = "HTTP from anywhere"
+  # }
   ingress {
     from_port   = 443
     to_port     = 443

@@ -106,6 +106,11 @@ variable "lb_target_group" {
   description = "aws lb target group"
 }
 
+variable "alb_security_id" {
+  type        = string
+  description = "aws alb security group ID"
+}
+
 variable "ecs_cluster_name" {
   type        = string
   description = "ECS Cluster name"

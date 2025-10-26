@@ -146,7 +146,6 @@ module "ecs" {
   health_check_path     = var.health_check_path
   cloudwatch_log_group  = module.log.log_group_name
   lb_target_group       = module.alb.target_group_arn
-  ecs_cluster_id        = module.alb.ecs_cluster_id
   ecs_cluster_name      = module.alb.ecs_cluster_name
   ecs_security_group_id = module.alb.ecs_security_group_id
 
@@ -187,6 +186,8 @@ module "ecs" {
       valueFrom = "${module.database.db_secret_arn}:password::"
     }
   ]
+
+  alb_security_id = module.alb.alb_security_group_id
 
   tags = local.common_tags
 }

@@ -14,10 +14,6 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "public_subnet_ids" {
-  description = "Public subnet IDs for ALB"
-  type        = list(string)
-}
 
 variable "private_subnet_ids" {
   description = "Private subnet IDs for ECS tasks"

@@ -209,7 +209,7 @@ resource "aws_ecs_service" "app" {
 
   deployment_configuration {
     maximum_percent         = 200
-    minimum_healthy_percent = 50 # Cho phép 50% container down trong deployment
+    minimum_healthy_percent = 50 
   }
 
   tags = var.tags

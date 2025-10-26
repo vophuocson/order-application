@@ -7,6 +7,6 @@ variable "allowed_repos_branches" {
   type = list(object({
     org     = string
     repo    = string
-    branche = string
+    branch = string
   }))
 }

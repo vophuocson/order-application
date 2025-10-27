@@ -9,7 +9,7 @@ module "OIDC" {
 
 terraform {
   backend "s3" {
-    bucket       = "prod-terraform-up-and-running-state"
+    bucket       = "production-terraform-up-and-running-state"
     key          = "authentication/terraform.tfstate"
     encrypt      = true
     use_lockfile = true

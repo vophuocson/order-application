@@ -8,10 +8,6 @@ variable "environment" {
   type        = string
 }
 
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-}
 
 variable "database_subnet_group_name" {
   description = "Database subnet group name"
@@ -84,3 +80,35 @@ variable "tags" {
   default     = {}
 }
 
+data "terraform_remote_state" "" {
+  backend = "s3"
+  config = {
+    bucket = var.db_remote_state_bucket
+    key = var.db_remote_state_key
+    region = "ap-southeast-1"
+  }
+}
+
+variable "bucket" {
+  description = "The bucket name that stores the state file"
+  type = string
+}
+
+variable "network_state_key" {
+  description = "the key name that stores the state file"
+  type = string
+}
+
+variable "region" {
+  description = "the key name that stores the state file"
+  type = string
+}
+
+data "terraform_remote_state" "vcp" {
+  backend = "s3"
+  config = {
+    bucket = var.bucket
+    key    = var.network_state_key
+    region = var.region
+  }
+}

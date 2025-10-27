@@ -28,7 +28,7 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 resource "aws_security_group" "rds" {
   name_prefix = "${local.name}-rds-"
   description = "Security group for RDS database"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.terraform_remote_state.vcp.vpc_id
 
   ingress {
     from_port       = 5432

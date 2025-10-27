@@ -8,11 +8,6 @@ variable "environment" {
   type        = string
 }
 
-variable "private_subnet_ids" {
-  description = "Private subnet IDs for ECS tasks"
-  type        = list(string)
-}
-
 variable "container_image" {
   description = "Docker container image"
   type        = string
@@ -95,19 +90,9 @@ variable "lb_target_group" {
   description = "aws lb target group"
 }
 
-variable "alb_security_id" {
-  type        = string
-  description = "aws alb security group ID"
-}
-
 variable "ecs_cluster_name" {
   type        = string
   description = "ECS Cluster name"
-}
-
-variable "ecs_security_group_id" {
-  type        = string
-  description = "ECS Task Security Group ID"
 }
 
 variable "bucket" {

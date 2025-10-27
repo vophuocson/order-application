@@ -8,13 +8,6 @@ variable "environment" {
   type        = string
 }
 
-
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-}
-
-
 variable "private_subnet_ids" {
   description = "Private subnet IDs for ECS tasks"
   type        = list(string)
@@ -115,4 +108,28 @@ variable "ecs_cluster_name" {
 variable "ecs_security_group_id" {
   type        = string
   description = "ECS Task Security Group ID"
+}
+
+variable "bucket" {
+  description = "The bucket name that stores the state file"
+  type = string
+}
+
+variable "vpc_state_key" {
+  description = "the key name that stores the state file"
+  type = string
+}
+
+variable "region" {
+  description = "the key name that stores the state file"
+  type = string
+}
+
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+  config = {
+    bucket = var.bucket
+    key    = var.vpc_state_key
+    region = var.region
+  }
 }

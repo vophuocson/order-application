@@ -62,33 +62,6 @@ resource "aws_iam_role_policy" "ecs_task_execution_secrets" {
 }
 
 
-resource "aws_security_group" "ecs_task" {
-  name_prefix = "${local.name}-ecs-tasks-"
-  description = "Security group for ECS tasks"
-  vpc_id      = var.vpc_id
-  ingress {
-    from_port       = var.container_port
-    to_port         = var.container_port
-    protocol        = "tcp"
-    security_groups = [var.alb_security_id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound"
-  }
-
-  tags = merge(var.tags, {
-    Name = "${local.name}-ecs-tasks-sg"
-  })
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
 
 resource "aws_iam_role" "ecs_task" {
   name_prefix = "${local.name}-ecs-task-"
@@ -191,8 +164,8 @@ resource "aws_ecs_service" "app" {
   launch_type      = "FARGATE"
   platform_version = "LATEST"
   network_configuration {
-    subnets          = var.private_subnet_ids
-    security_groups  = [aws_security_group.ecs_task.id]
+    subnets          = data.terraform_remote_state.vpc.private_subnet_ids
+    security_groups  = [data.terraform_remote_state.vpc.ecs_security_group]
     assign_public_ip = false
   }
 

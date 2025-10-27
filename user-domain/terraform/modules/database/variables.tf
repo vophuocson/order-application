@@ -8,12 +8,6 @@ variable "environment" {
   type        = string
 }
 
-variable "allowed_security_group_ids" {
-  description = "Security group IDs allowed to access RDS"
-  type        = list(string)
-  default     = []
-}
-
 variable "instance_class" {
   description = "RDS instance class"
   type        = string
@@ -41,13 +35,6 @@ variable "engine_version" {
 variable "database_name" {
   description = "Database name"
   type        = string
-}
-
-variable "master_username" {
-  description = "Master username"
-  type        = string
-  default     = "postgres"
-  sensitive   = true
 }
 
 variable "backup_retention_period" {

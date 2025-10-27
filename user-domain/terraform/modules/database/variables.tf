@@ -112,3 +112,15 @@ data "terraform_remote_state" "vcp" {
     region = var.region
   }
 }
+
+variable "db-creds" {
+  type = string
+  description = "Database credentials stored as a secret"
+}
+
+data "aws_secretsmanager_secret_version" "creds" {
+  secret_id = var.db-creds
+}
+locals {
+  db_cres = jsondecode(data.aws_secretsmanager_secret_version.creds.secret_string)
+}

@@ -1,21 +1,6 @@
 locals {
   name = "${var.project_name}-${var.environment}"
 }
-
-# Random password for RDS
-resource "random_password" "db_password" {
-  length  = 32
-  special = true
-}
-
-# Store password in Secrets Manager
-resource "aws_secretsmanager_secret" "db_password" {
-  name_prefix = "${local.name}-db-password-"
-  description = "RDS database password for ${local.name}"
-
-  tags = var.tags
-}
-
 resource "aws_secretsmanager_secret_version" "db_password" {
   secret_id = aws_secretsmanager_secret.db_password.id
   secret_string = jsonencode({
@@ -67,8 +52,8 @@ resource "aws_db_instance" "main" {
   storage_encrypted     = true
 
   db_name  = var.database_name
-  username = var.master_username
-  password = random_password.db_password.result
+  username = local.db_cres.username
+  password = local.db_cres.password
 
   db_subnet_group_name   = var.database_subnet_group_name
   vpc_security_group_ids = [aws_security_group.rds.id]

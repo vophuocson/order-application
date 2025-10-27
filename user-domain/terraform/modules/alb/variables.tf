@@ -15,16 +15,6 @@ variable "tags" {
   default     = {}
 }
 
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-}
-
-variable "public_subnet_ids" {
-  description = "Public subnet IDs for ALB"
-  type        = list(string)
-}
-
 variable "container_port" {
   type        = number
   description = "Container port"

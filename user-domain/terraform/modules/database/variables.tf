@@ -8,12 +8,6 @@ variable "environment" {
   type        = string
 }
 
-
-variable "database_subnet_group_name" {
-  description = "Database subnet group name"
-  type        = string
-}
-
 variable "allowed_security_group_ids" {
   description = "Security group IDs allowed to access RDS"
   type        = list(string)

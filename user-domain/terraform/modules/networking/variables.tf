@@ -31,3 +31,9 @@ variable "tags" {
   default = {
   }
 }
+
+variable "container_port" {
+  type        = number
+  description = "Container port"
+  default     = 8080
+}

@@ -33,3 +33,10 @@ output "nat_gateway_ids" {
   value       = aws_nat_gateway.main[*].id
 }
 
+output "alb_security_group" {
+  value = aws_security_group.alb.id
+}
+
+output "ecs_security_group" {
+  value = aws_security_group.ecs_task.id
+}

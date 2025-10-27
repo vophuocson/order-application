@@ -170,7 +170,7 @@ resource "aws_ecs_service" "app" {
   }
 
   load_balancer {
-    target_group_arn = var.lb_target_group
+    target_group_arn = data.terraform_remote_state.alb.target_group_arn
     container_name   = var.project_name
     container_port   = var.container_port
   }

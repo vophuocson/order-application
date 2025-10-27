@@ -85,11 +85,6 @@ variable "cloudwatch_log_group" {
   description = "aws cloudwatch loggroup"
 }
 
-variable "lb_target_group" {
-  type        = string
-  description = "aws lb target group"
-}
-
 variable "ecs_cluster_name" {
   type        = string
   description = "ECS Cluster name"
@@ -105,6 +100,11 @@ variable "vpc_state_key" {
   type = string
 }
 
+variable "alb_state_key" {
+  description = "the key name that stores the state file"
+  type = string
+}
+
 variable "region" {
   description = "the key name that stores the state file"
   type = string
@@ -115,6 +115,15 @@ data "terraform_remote_state" "vpc" {
   config = {
     bucket = var.bucket
     key    = var.vpc_state_key
+    region = var.region
+  }
+}
+
+data "terraform_remote_state" "alb" {
+  backend = "s3"
+  config = {
+    bucket = var.bucket
+    key    = var.alb_state_key
     region = var.region
   }
 }

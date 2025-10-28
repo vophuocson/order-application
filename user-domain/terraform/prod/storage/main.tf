@@ -1,8 +1,8 @@
 module "rds" {
   source = "../../modules/database"
-  database_name = ""
-  project_name = ""
-  environment = ""
+  database_name = "order"
+  project_name = "user-api"
+  environment = "production"
   bucket = "production-terraform-up-and-running-state"
   network_state_key = "storage/terraform.tfstate"
   region = "ap-southeast-1"

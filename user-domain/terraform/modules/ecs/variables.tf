@@ -100,14 +100,14 @@ variable "vpc_state_key" {
   type = string
 }
 
-variable "alb_state_key" {
+variable "region" {
   description = "the key name that stores the state file"
   type = string
 }
 
-variable "region" {
-  description = "the key name that stores the state file"
+variable "alb_target_group" {
   type = string
+  description = "alb target group name"
 }
 
 data "terraform_remote_state" "vpc" {
@@ -115,15 +115,6 @@ data "terraform_remote_state" "vpc" {
   config = {
     bucket = var.bucket
     key    = var.vpc_state_key
-    region = var.region
-  }
-}
-
-data "terraform_remote_state" "alb" {
-  backend = "s3"
-  config = {
-    bucket = var.bucket
-    key    = var.alb_state_key
     region = var.region
   }
 }

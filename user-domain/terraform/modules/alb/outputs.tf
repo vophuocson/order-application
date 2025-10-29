@@ -37,13 +37,3 @@ variable "region" {
   description = "the key name that stores the state file"
   type = string
 }
-
-data "terraform_remote_state" "vpc" {
-  backend = "s3"
-
-  config = {
-    bucket = var.bucket
-    key    = var.network_state_key
-    region = var.region
-  }
-}

@@ -33,3 +33,18 @@ variable "health_check_path" {
   type        = string
   default     = "/health"
 }
+
+variable "vpc_id" {
+  type        = string
+  description = "The ID of the VPC where resources will be created."
+}
+
+variable "security_groups" {
+  type        = list(string)
+  description = "A list of security group IDs to associate with the resources."
+}
+
+variable "public_subnet_ids" {
+  type        = list(string)
+  description = "A list of public subnet IDs within the specified VPC."
+}

@@ -5,7 +5,7 @@ locals {
 resource "aws_security_group" "alb" {
   name_prefix = "${local.name}-alb-"
   description = "Security group for Application Load Balancer"
-  vpc_id      = data.terraform_remote_state.vpc.vpc_id
+  vpc_id      = var.vpc_id
   # ingress {
   #   from_port   = 80
   #   to_port     = 80
@@ -38,8 +38,8 @@ resource "aws_alb" "main" {
   name               = "${local.name}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [data.terraform_remote_state.vpc.alb_security_group]
-  subnets            = data.terraform_remote_state.vpc.public_subnet_ids
+  security_groups    = var.security_groups
+  subnets            = var.public_subnet_ids
   # Prevent accidental deletion of the ALB in the production environment
   enable_deletion_protection       = var.environment == "prod" ? true : false
   enable_http2                     = true
@@ -53,7 +53,7 @@ resource "aws_lb_target_group" "app" {
   name     = "${local.name}-tg"
   port     = var.container_port
   protocol = "HTTP"
-  vpc_id   = data.terraform_remote_state.vpc.vpc_id
+  vpc_id   = var.vpc_id
   # forward traffic to ip container
   target_type = "ip"
   health_check {

@@ -121,7 +121,7 @@ resource "aws_ecs_task_definition" "app" {
   task_role_arn            = aws_iam_role.ecs_task.arn
   container_definitions = jsonencode({
     name      = var.project_name
-    image     = var.container_image
+    image     ="${terraform_remote_state.ecr.repository_url}:${var.image_tag}"
     essential = true
     portMappings = [
       {

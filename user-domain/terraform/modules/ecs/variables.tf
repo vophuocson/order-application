@@ -8,11 +8,6 @@ variable "environment" {
   type        = string
 }
 
-variable "container_image" {
-  description = "Docker container image"
-  type        = string
-}
-
 variable "container_port" {
   type        = number
   description = "Container port"
@@ -100,6 +95,11 @@ variable "vpc_state_key" {
   type = string
 }
 
+variable "ecr_state_key" {
+  description = "the key name that stores the state file"
+  type = string
+}
+
 variable "region" {
   description = "the key name that stores the state file"
   type = string
@@ -117,4 +117,18 @@ data "terraform_remote_state" "vpc" {
     key    = var.vpc_state_key
     region = var.region
   }
+}
+
+data "terraform_remote_state" "ecr" {
+  backend = "s3"
+  config = {
+    bucket = var.bucket
+    key    = var.ecr_state_key
+    region = var.region
+  }
+}
+
+variable "image_tag" {
+  type = string
+  description = "tag of image in ecr"
 }

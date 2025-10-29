@@ -110,25 +110,19 @@ variable "alb_target_group" {
   description = "alb target group name"
 }
 
-data "terraform_remote_state" "vpc" {
-  backend = "s3"
-  config = {
-    bucket = var.bucket
-    key    = var.vpc_state_key
-    region = var.region
-  }
-}
-
-data "terraform_remote_state" "ecr" {
-  backend = "s3"
-  config = {
-    bucket = var.bucket
-    key    = var.ecr_state_key
-    region = var.region
-  }
-}
-
 variable "image_tag" {
   type = string
   description = "tag of image in ecr"
+}
+
+variable "repository_url" {
+  type = string
+}
+
+variable "private_subnet_ids" {
+  type = list(string)
+}
+
+variable "security_groups" {
+  type = list(string)
 }

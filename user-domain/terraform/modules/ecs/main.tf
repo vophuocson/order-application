@@ -121,7 +121,7 @@ resource "aws_ecs_task_definition" "app" {
   task_role_arn            = aws_iam_role.ecs_task.arn
   container_definitions = jsonencode({
     name      = var.project_name
-    image     ="${terraform_remote_state.ecr.repository_url}:${var.image_tag}"
+    image     = var.repository_url
     essential = true
     portMappings = [
       {
@@ -164,8 +164,8 @@ resource "aws_ecs_service" "app" {
   launch_type      = "FARGATE"
   platform_version = "LATEST"
   network_configuration {
-    subnets          = data.terraform_remote_state.vpc.private_subnet_ids
-    security_groups  = [data.terraform_remote_state.vpc.ecs_security_group]
+    subnets          = var.private_subnet_ids
+    security_groups  = var.security_groups
     assign_public_ip = false
   }
 

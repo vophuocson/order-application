@@ -28,11 +28,6 @@ variable "bucket" {
   type = string
 }
 
-variable "network_state_key" {
-  description = "the key name that stores the state file"
-  type = string
-}
-
 variable "region" {
   description = "the key name that stores the state file"
   type = string

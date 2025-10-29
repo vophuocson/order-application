@@ -90,15 +90,6 @@ variable "bucket" {
   type = string
 }
 
-variable "vpc_state_key" {
-  description = "the key name that stores the state file"
-  type = string
-}
-
-variable "ecr_state_key" {
-  description = "the key name that stores the state file"
-  type = string
-}
 
 variable "region" {
   description = "the key name that stores the state file"

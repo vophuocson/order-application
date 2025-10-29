@@ -17,8 +17,8 @@ resource "aws_db_instance" "main" {
   username = local.db_cres.username
   password = local.db_cres.password
 
-  db_subnet_group_name   = data.terraform_remote_state.vcp.database_subnet_group_name
-  vpc_security_group_ids = [data.terraform_remote_state.vcp.rds_security_group.id]
+  db_subnet_group_name   = var.database_subnet_group_name
+  vpc_security_group_ids = var.vpc_security_group_ids
 
   multi_az                = var.multi_az
   publicly_accessible     = false

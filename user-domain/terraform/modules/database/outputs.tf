@@ -39,3 +39,11 @@ output "db_security_group_id" {
   value       = aws_security_group.rds.id
 }
 
+variable "database_subnet_group_name" {
+  type = string
+  description = "The name of the database subnet group used for the RDS instance."
+}
+variable "vpc_security_group_ids" {
+  type = list(string)
+  description = "A list of VPC security group IDs to associate with the RDS instance."
+}

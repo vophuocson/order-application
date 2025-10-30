@@ -1,0 +1,63 @@
+formatter: "markdown table"
+
+version: ""
+
+header-from: README.md
+footer-from: ""
+
+recursive:
+  enabled: false
+
+sections:
+  show:
+    - header
+    - requirements
+    - providers
+    - modules
+    - resources
+    - inputs
+    - outputs
+
+content: |-
+  {{ .Header }}
+
+  ## Requirements
+
+  {{ .Requirements }}
+
+  ## Providers
+
+  {{ .Providers }}
+
+  ## Modules
+
+  {{ .Modules }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+  ## Inputs
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+output:
+  file: "TERRAFORM_DOCS.md"
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+sort:
+  enabled: true
+  by: name
+
+settings:
+  anchor: true
+  color: true
+

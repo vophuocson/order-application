@@ -12,7 +12,6 @@ locals {
   }
 }
 
-
 # Networking - VPC, Subnets, Security Groups
 
 module "networking" {
@@ -63,7 +62,7 @@ module "database" {
   multi_az                = var.rds_multi_az
   backup_retention_period = var.rds_backup_retention_period
   skip_final_snapshot     = var.rds_skip_final_snapshot
-  vpc_security_group_ids = module.networking.rds_security_group
+  vpc_security_group_ids = [module.networking.rds_security_group]
   database_subnet_group_name = module.networking.database_subnet_group_name
 }
 
@@ -74,16 +73,13 @@ module "alb" {
   
   project_name = local.project_name
   environment  = local.environment
-  region       = local.region
-  bucket       = var.backend_s3_bucket
-  
   # Pass VPC outputs directly
   vpc_id            = module.networking.vpc_id
   public_subnet_ids = module.networking.public_subnet_ids
   
   # Optional: SSL Certificate
   certificate_arn = var.certificate_arn
-  security_groups = module.networking.alb_security_group
+  security_groups = [module.networking.alb_security_group]
 }
 
 # ECS Cluster and Service
@@ -112,9 +108,9 @@ module "ecs" {
   
   # Networking
   private_subnet_ids = module.networking.private_subnet_ids
+  security_groups    = [module.networking.ecs_security_group]
   
   # Load Balancer
-  security_groups= [module.alb.alb_security_group_id]
   alb_target_group = module.alb.target_group_arn
   
   image_tag = ""

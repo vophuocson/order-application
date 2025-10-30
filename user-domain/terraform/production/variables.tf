@@ -175,7 +175,3 @@ variable "certificate_arn" {
   type        = string
   default     = ""
 }
-
-variable "log_retention_days" {
-  type = number
-}

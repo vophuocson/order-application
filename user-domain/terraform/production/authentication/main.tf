@@ -1,9 +1,9 @@
 module "OIDC" {
   source = "../../modules/authentication"
   allowed_repos_branches = [{
-    org = "vophuocson"
-    repo = "order-application"
-    branche = "main"
+    org    = "vophuocson"
+    repo   = "order-application"
+    branch = "main"
   }]
 }
 

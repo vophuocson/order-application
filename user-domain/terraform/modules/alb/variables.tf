@@ -48,3 +48,13 @@ variable "public_subnet_ids" {
   type        = list(string)
   description = "A list of public subnet IDs within the specified VPC."
 }
+
+variable "bucket" {
+  description = "The bucket name that stores the state file"
+  type        = string
+}
+
+variable "region" {
+  description = "the key name that stores the state file"
+  type        = string
+}

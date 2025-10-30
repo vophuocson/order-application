@@ -72,13 +72,16 @@ variable "region" {
 }
 
 variable "db_creds" {
-  type = string
+  type        = string
   description = "Database credentials stored as a secret"
 }
 
-data "aws_secretsmanager_secret_version" "creds" {
-  secret_id = var.db_creds
+variable "database_subnet_group_name" {
+  type        = string
+  description = "The name of the database subnet group used for the RDS instance."
 }
-locals {
-  db_cres = jsondecode(data.aws_secretsmanager_secret_version.creds.secret_string)
+
+variable "vpc_security_group_ids" {
+  type        = list(string)
+  description = "A list of VPC security group IDs to associate with the RDS instance."
 }

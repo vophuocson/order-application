@@ -13,6 +13,11 @@ output "db_instance_endpoint" {
   value       = aws_db_instance.main.endpoint
 }
 
+output "db_endpoint" {
+  description = "RDS instance endpoint (alias)"
+  value       = aws_db_instance.main.endpoint
+}
+
 output "db_instance_port" {
   description = "RDS instance port"
   value       = aws_db_instance.main.port
@@ -31,19 +36,5 @@ output "db_master_username" {
 
 output "db_secret_arn" {
   description = "ARN of the Secrets Manager secret containing DB credentials"
-  value       = aws_secretsmanager_secret.db_password.arn
-}
-
-output "db_security_group_id" {
-  description = "Security group ID of the RDS instance"
-  value       = aws_security_group.rds.id
-}
-
-variable "database_subnet_group_name" {
-  type = string
-  description = "The name of the database subnet group used for the RDS instance."
-}
-variable "vpc_security_group_ids" {
-  type = list(string)
-  description = "A list of VPC security group IDs to associate with the RDS instance."
+  value       = data.aws_secretsmanager_secret_version.creds.arn
 }

@@ -1,5 +1,10 @@
+data "aws_secretsmanager_secret_version" "creds" {
+  secret_id = var.db_creds
+}
+
 locals {
-  name = "${var.project_name}-${var.environment}"
+  name    = "${var.project_name}-${var.environment}"
+  db_cres = jsondecode(data.aws_secretsmanager_secret_version.creds.secret_string)
 }
 
 # RDS Instance

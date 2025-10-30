@@ -22,13 +22,3 @@ output "alb_security_group_id" {
   description = "Security group ID of the ALB"
   value       = aws_security_group.alb.id
 }
-
-variable "bucket" {
-  description = "The bucket name that stores the state file"
-  type = string
-}
-
-variable "region" {
-  description = "the key name that stores the state file"
-  type = string
-}

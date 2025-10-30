@@ -119,7 +119,7 @@ resource "aws_ecs_task_definition" "app" {
   memory                   = var.task_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
   task_role_arn            = aws_iam_role.ecs_task.arn
-  container_definitions = jsonencode({
+  container_definitions = jsonencode([{
     name      = var.project_name
     image     = var.repository_url
     essential = true
@@ -151,7 +151,7 @@ resource "aws_ecs_task_definition" "app" {
       retries     = 3
       startPeriod = 60
     }
-  })
+  }])
 
   tags = var.tags
 }

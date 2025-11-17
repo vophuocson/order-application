@@ -1,4 +1,4 @@
-package activity
+package action
 
 import (
 	"context"
@@ -16,37 +16,17 @@ const (
 	PAYMENT_UPDATE = "PaymentUpdate"
 )
 
-type UserUpdationActivity struct {
-	commands []Command
+type userUpdateApproval struct {
+	producer  outbound.Producer
+	userID    string
+	commandID uuid.UUID
+	isRan     bool
 }
 
-func (uA UserUpdationActivity) GetCommands() []Command {
-	return uA.commands
-}
-
-type CommandResponse struct {
-	CommandName string
-	Error       error
-}
-
-type userUpdateCommand struct {
-	producer   outbound.Producer
-	subscriber outbound.Subscriber
-	oldUser    *entity.User
-	newUser    *entity.User
-	commandID  uuid.UUID
-}
-
-func (c *userUpdateCommand) Name() string {
-	return USER_UPDATE
-}
-
-func (c *userUpdateCommand) ExecutePending(ctx context.Context) error { return nil }
-func (c *userUpdateCommand) Verify(ctx context.Context) error         { return nil }
-func (c *userUpdateCommand) Approve(ctx context.Context) error {
+func (c *userUpdateApproval) Approve(ctx context.Context) error {
 	bytes, err := json.Marshal(map[string]interface{}{
 		"event":      "user.approve",
-		"user_id":    c.newUser.ID,
+		"user_id":    c.userID,
 		"command_id": c.commandID,
 	})
 	if err != nil {
@@ -55,13 +35,33 @@ func (c *userUpdateCommand) Approve(ctx context.Context) error {
 	if err := c.producer.Push(ctx, "user.approve", bytes); err != nil {
 		return fmt.Errorf("failed to publish user approve: %w", err)
 	}
+	c.isRan = true
 	return nil
 }
 
-func (c *userUpdateCommand) Compensate(ctx context.Context) error {
+func (c *userUpdateApproval) Ran() bool {
+	return c.isRan
+}
+
+func NewUserUpdateApproval(producer outbound.Producer, userID string) Approval {
+	return &userUpdateApproval{
+		producer:  producer,
+		userID:    userID,
+		commandID: uuid.New(),
+	}
+}
+
+type userUpdateCompensation struct {
+	producer  outbound.Producer
+	userID    string
+	commandID uuid.UUID
+	isRan     bool
+}
+
+func (c *userUpdateCompensation) Compensate(ctx context.Context) error {
 	bytes, err := json.Marshal(map[string]interface{}{
 		"event":      "user.rollback",
-		"user_id":    c.oldUser.ID,
+		"user_id":    c.userID,
 		"command_id": c.commandID,
 	})
 	if err != nil {
@@ -75,19 +75,26 @@ func (c *userUpdateCommand) Compensate(ctx context.Context) error {
 	return nil
 }
 
-type paymentUpdateCommand struct {
-	producer   outbound.Producer
-	subscriber outbound.Subscriber
-	oldUser    *entity.User
-	newUser    *entity.User
-	commandID  uuid.UUID
+func (c *userUpdateCompensation) Ran() bool {
+	return c.isRan
 }
 
-func (c *paymentUpdateCommand) Name() string {
-	return PAYMENT_UPDATE
+func NewUserUpdateCompensation(producer outbound.Producer, userID string) Compensation {
+	return &userUpdateCompensation{
+		producer:  producer,
+		userID:    userID,
+		commandID: uuid.New(),
+	}
 }
 
-func (c *paymentUpdateCommand) ExecutePending(ctx context.Context) error {
+type paymentUpdateExecution struct {
+	producer  outbound.Producer
+	newUser   *entity.User
+	commandID uuid.UUID
+	isRan     bool
+}
+
+func (c *paymentUpdateExecution) Execute(ctx context.Context) error {
 	bytes, err := json.Marshal(map[string]interface{}{
 		"event":   "payment.pending",
 		"user_id": c.newUser.ID,
@@ -108,41 +115,26 @@ func (c *paymentUpdateCommand) ExecutePending(ctx context.Context) error {
 	return nil
 }
 
-func (c *paymentUpdateCommand) Verify(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	responseBytes, err := c.subscriber.Consume(ctx, "payment.pending.response")
-	if err != nil {
-		return fmt.Errorf("failed to receive payment verification: %w", err)
-	}
-	var response VerificationResponse
-	err = json.Unmarshal(responseBytes, &response)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal payment verification: %w", err)
-	}
-	if !response.Accepted {
-		return fmt.Errorf("payment service rejected pending data: %s", response.Message)
-	}
-	return nil
+func (c *paymentUpdateExecution) Ran() bool {
+	return c.isRan
 }
 
-func (c *paymentUpdateCommand) Approve(ctx context.Context) error {
-	bytes, err := json.Marshal(map[string]interface{}{
-		"event":   "payment.approve",
-		"user_id": c.newUser.ID,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to marshal payment approve event: %w", err)
+func NewPaymentUpdateExecution(producer outbound.Producer, newUser *entity.User) Execution {
+	return &paymentUpdateExecution{
+		producer:  producer,
+		newUser:   newUser,
+		commandID: uuid.New(),
 	}
-
-	if err := c.producer.Push(ctx, "payment.approve", bytes); err != nil {
-		return fmt.Errorf("failed to publish payment approve: %w", err)
-	}
-
-	return nil
 }
 
-func (c *paymentUpdateCommand) Compensate(ctx context.Context) error {
+type paymentUpdateCompensation struct {
+	producer  outbound.Producer
+	oldUser   *entity.User
+	commandID uuid.UUID
+	isRan     bool
+}
+
+func (c *paymentUpdateCompensation) Compensate(ctx context.Context) error {
 	bytes, err := json.Marshal(map[string]interface{}{
 		"event":   "payment.rollback",
 		"user_id": c.oldUser.ID,
@@ -165,25 +157,80 @@ func (c *paymentUpdateCommand) Compensate(ctx context.Context) error {
 	return nil
 }
 
-func NewUpdationUserActivity(producer outbound.Producer,
-	subscriber outbound.Subscriber,
-	newUser, oldUser *entity.User) *UserUpdationActivity {
-	activity := &UserUpdationActivity{
-		commands: make([]Command, 0),
+func (c *paymentUpdateCompensation) Ran() bool {
+	return c.isRan
+}
+
+func NewPaymentUpdateCompensation(producer outbound.Producer, oldUser *entity.User) Compensation {
+	return &paymentUpdateCompensation{
+		producer:  producer,
+		oldUser:   oldUser,
+		commandID: uuid.New(),
 	}
-	activity.commands = append(activity.commands, &userUpdateCommand{
-		producer:   producer,
+}
+
+type paymentUpdateVerification struct {
+	subscriber outbound.Subscriber
+	isRan      bool
+}
+
+func (c *paymentUpdateVerification) Verify(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	responseBytes, err := c.subscriber.Consume(ctx, "payment.pending.response")
+	if err != nil {
+		return fmt.Errorf("failed to receive payment verification: %w", err)
+	}
+	var response VerificationResponse
+	err = json.Unmarshal(responseBytes, &response)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal payment verification: %w", err)
+	}
+	if !response.Accepted {
+		return fmt.Errorf("payment service rejected pending data: %s", response.Message)
+	}
+	return nil
+}
+
+func (c *paymentUpdateVerification) Ran() bool {
+	return c.isRan
+}
+
+func NewPaymentUpdateVerification(subscriber outbound.Subscriber) Verification {
+	return &paymentUpdateVerification{
 		subscriber: subscriber,
-		oldUser:    oldUser,
-		newUser:    newUser,
-		commandID:  uuid.New(),
+	}
+}
+
+type paymentUpdateApproval struct {
+	producer outbound.Producer
+	isRan    bool
+	userID   string
+}
+
+func (c *paymentUpdateApproval) Approve(ctx context.Context) error {
+	bytes, err := json.Marshal(map[string]interface{}{
+		"event":   "payment.approve",
+		"user_id": c.userID,
 	})
-	activity.commands = append(activity.commands, &paymentUpdateCommand{
-		producer:   producer,
-		subscriber: subscriber,
-		oldUser:    oldUser,
-		newUser:    newUser,
-		commandID:  uuid.New(),
-	})
-	return activity
+	if err != nil {
+		return fmt.Errorf("failed to marshal payment approve event: %w", err)
+	}
+
+	if err := c.producer.Push(ctx, "payment.approve", bytes); err != nil {
+		return fmt.Errorf("failed to publish payment approve: %w", err)
+	}
+
+	return nil
+}
+
+func (c *paymentUpdateApproval) Ran() bool {
+	return c.isRan
+}
+
+func NewPaymentUpdateApproval(producer outbound.Producer, userID string) Approval {
+	return &paymentUpdateApproval{
+		producer: producer,
+		userID:   userID,
+	}
 }

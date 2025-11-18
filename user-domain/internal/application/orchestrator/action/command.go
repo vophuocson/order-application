@@ -10,26 +10,22 @@ type Ran func() bool
 type Execution interface {
 	Execute(ctx context.Context) error
 	Ran() bool
+	Name() string
 }
 type Verification interface {
 	Ran() bool
 	Verify(ctx context.Context) error
+	Name() string
 }
 type Compensation interface {
 	Compensate(ctx context.Context) error
 	Ran() bool
+	Name() string
 }
 type Approval interface {
 	Approve(ctx context.Context) error
-	Ran() bool
-}
-
-type Command interface {
-	ExecutePending(ctx context.Context) error
-	Verify(ctx context.Context) error
-	Approve(ctx context.Context) error
-	Compensate(ctx context.Context) error
 	Name() string
+	Ran() bool
 }
 
 type VerificationResponse struct {

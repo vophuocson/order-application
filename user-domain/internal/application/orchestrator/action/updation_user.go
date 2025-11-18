@@ -12,8 +12,12 @@ import (
 )
 
 const (
-	USER_UPDATE    = "UserUpdate"
-	PAYMENT_UPDATE = "PaymentUpdate"
+	USER_UPDATE                 = "UserUpdate"
+	USER_UPDATE_COMPENSATE      = "UserUpdateCompensate"
+	USER_UPDATE_APPROVE         = "UserUpdateApprove"
+	PAYMENT_UPDATE_EXECUTE      = "PaymentUpdateExecute"
+	PAYMENT_UPDATE_COMPENSATE   = "PaymentUpdateCompensate"
+	PAYMENT_UPDATE_VERIFICATION = "PaymentUpdateVerification"
 )
 
 type userUpdateApproval struct {
@@ -41,6 +45,10 @@ func (c *userUpdateApproval) Approve(ctx context.Context) error {
 
 func (c *userUpdateApproval) Ran() bool {
 	return c.isRan
+}
+
+func (c *userUpdateApproval) Name() string {
+	return USER_UPDATE_APPROVE
 }
 
 func NewUserUpdateApproval(producer outbound.Producer, userID string) Approval {
@@ -77,6 +85,10 @@ func (c *userUpdateCompensation) Compensate(ctx context.Context) error {
 
 func (c *userUpdateCompensation) Ran() bool {
 	return c.isRan
+}
+
+func (c *userUpdateCompensation) Name() string {
+	return USER_UPDATE_COMPENSATE
 }
 
 func NewUserUpdateCompensation(producer outbound.Producer, userID string) Compensation {
@@ -127,6 +139,10 @@ func NewPaymentUpdateExecution(producer outbound.Producer, newUser *entity.User)
 	}
 }
 
+func (c *paymentUpdateExecution) Name() string {
+	return PAYMENT_UPDATE_EXECUTE
+}
+
 type paymentUpdateCompensation struct {
 	producer  outbound.Producer
 	oldUser   *entity.User
@@ -169,6 +185,10 @@ func NewPaymentUpdateCompensation(producer outbound.Producer, oldUser *entity.Us
 	}
 }
 
+func (c *paymentUpdateCompensation) Name() string {
+	return PAYMENT_UPDATE_COMPENSATE
+}
+
 type paymentUpdateVerification struct {
 	subscriber outbound.Subscriber
 	isRan      bool
@@ -194,6 +214,10 @@ func (c *paymentUpdateVerification) Verify(ctx context.Context) error {
 
 func (c *paymentUpdateVerification) Ran() bool {
 	return c.isRan
+}
+
+func (c *paymentUpdateVerification) Name() string {
+	return PAYMENT_UPDATE_VERIFICATION
 }
 
 func NewPaymentUpdateVerification(subscriber outbound.Subscriber) Verification {
@@ -226,6 +250,10 @@ func (c *paymentUpdateApproval) Approve(ctx context.Context) error {
 
 func (c *paymentUpdateApproval) Ran() bool {
 	return c.isRan
+}
+
+func (c *paymentUpdateApproval) Name() string {
+	return PAYMENT_UPDATE_VERIFICATION
 }
 
 func NewPaymentUpdateApproval(producer outbound.Producer, userID string) Approval {

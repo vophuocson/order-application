@@ -21,6 +21,7 @@ type Server struct {
 func main() {
 	cfg := config.LoadConfig()
 	logger := logger.NewLogger()
+	defer logger.Sync()
 	gorm, err := database.NewGorm(cfg, logger)
 	if err != nil {
 		panic(err.Error())
@@ -32,7 +33,6 @@ func main() {
 	defer c.Close()
 	workflowRuner := orchestrator.NewTemporalClient(c)
 	// flush buffer before exiting
-	defer logger.Sync()
 	r := router.BuildRouter(gorm, logger, workflowRuner)
 	s := Server{
 		httpServer: &http.Server{

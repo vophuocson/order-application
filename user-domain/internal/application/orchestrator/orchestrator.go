@@ -19,7 +19,7 @@ type orchestrator struct {
 func (o *orchestrator) ExecuteUserUpdation(ctx context.Context, revertUser, newUser *entity.User) error {
 	o.logger.Info("Starting user update orchestration for user ID: %s", newUser.ID)
 	updateWorkflow := workflow.NewUpdationUserWorkflow(o.producer, o.subscriber, revertUser, newUser)
-	err := o.workflowRuner.Execute(ctx, updateWorkflow.Execute)
+	err := o.workflowRuner.Execute(ctx, updateWorkflow.Run)
 	if err != nil {
 		o.logger.Error("User update workflow failed: %v", err)
 		o.logExecutionTrace(updateWorkflow)
@@ -30,7 +30,7 @@ func (o *orchestrator) ExecuteUserUpdation(ctx context.Context, revertUser, newU
 	return nil
 }
 
-func (o *orchestrator) logExecutionTrace(wf *workflow.UserUpdationWorkflow) {
+func (o *orchestrator) logExecutionTrace(wf workflow.Workflow) {
 	logs := wf.GetExecutionLogs()
 	o.logger.Info("Workflow final state: %s", wf.GetState())
 

@@ -12,100 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	USER_UPDATE                 = "UserUpdate"
-	USER_UPDATE_COMPENSATE      = "UserUpdateCompensate"
-	USER_UPDATE_APPROVE         = "UserUpdateApprove"
-	PAYMENT_UPDATE_EXECUTE      = "PaymentUpdateExecute"
-	PAYMENT_UPDATE_COMPENSATE   = "PaymentUpdateCompensate"
-	PAYMENT_UPDATE_VERIFICATION = "PaymentUpdateVerification"
-)
-
-type VerificationResponse struct {
-	ServiceName string
-	Accepted    bool
-	Message     string
-	Error       error
-}
-type userUpdateApproval struct {
-	producer  outbound.Producer
-	userID    string
-	commandID uuid.UUID
-	isRan     bool
-}
-
-func (c *userUpdateApproval) Approve(ctx context.Context) error {
-	bytes, err := json.Marshal(map[string]interface{}{
-		"event":      "user.approve",
-		"user_id":    c.userID,
-		"command_id": c.commandID,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to marshal user approve event: %w", err)
-	}
-	if err := c.producer.Push(ctx, "user.approve", bytes); err != nil {
-		return fmt.Errorf("failed to publish user approve: %w", err)
-	}
-	c.isRan = true
-	return nil
-}
-
-func (c *userUpdateApproval) Ran() bool {
-	return c.isRan
-}
-
-func (c *userUpdateApproval) Name() string {
-	return USER_UPDATE_APPROVE
-}
-
-func NewUserUpdateApproval(producer outbound.Producer, userID string) command.Approval {
-	return &userUpdateApproval{
-		producer:  producer,
-		userID:    userID,
-		commandID: uuid.New(),
-	}
-}
-
-type userUpdateCompensation struct {
-	producer  outbound.Producer
-	oldUser   *entity.User
-	commandID uuid.UUID
-	isRan     bool
-}
-
-func (c *userUpdateCompensation) Compensate(ctx context.Context) error {
-	bytes, err := json.Marshal(map[string]interface{}{
-		"event":      "user.rollback",
-		"user":       c.oldUser,
-		"command_id": c.commandID,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to marshal user rollback event: %w", err)
-	}
-
-	if err := c.producer.Push(ctx, "user.rollback", bytes); err != nil {
-		return fmt.Errorf("failed to publish user rollback: %w", err)
-	}
-
-	return nil
-}
-
-func (c *userUpdateCompensation) Ran() bool {
-	return c.isRan
-}
-
-func (c *userUpdateCompensation) Name() string {
-	return USER_UPDATE_COMPENSATE
-}
-
-func NewUserUpdateCompensation(producer outbound.Producer, oldUser *entity.User) command.Compensation {
-	return &userUpdateCompensation{
-		producer:  producer,
-		oldUser:   oldUser,
-		commandID: uuid.New(),
-	}
-}
-
+// paymentUpdateExecution handles the execution of payment update
 type paymentUpdateExecution struct {
 	producer  outbound.Producer
 	newUser   *entity.User
@@ -131,6 +38,7 @@ func (c *paymentUpdateExecution) Execute(ctx context.Context) error {
 	if err := c.producer.Push(ctx, "payment.pending", bytes); err != nil {
 		return fmt.Errorf("failed to publish payment pending: %w", err)
 	}
+	c.isRan = true
 	return nil
 }
 
@@ -138,6 +46,11 @@ func (c *paymentUpdateExecution) Ran() bool {
 	return c.isRan
 }
 
+func (c *paymentUpdateExecution) Name() string {
+	return PAYMENT_UPDATE_EXECUTE
+}
+
+// NewPaymentUpdateExecution creates a new payment update execution command
 func NewPaymentUpdateExecution(producer outbound.Producer, newUser *entity.User) command.Execution {
 	return &paymentUpdateExecution{
 		producer:  producer,
@@ -146,10 +59,7 @@ func NewPaymentUpdateExecution(producer outbound.Producer, newUser *entity.User)
 	}
 }
 
-func (c *paymentUpdateExecution) Name() string {
-	return PAYMENT_UPDATE_EXECUTE
-}
-
+// paymentUpdateCompensation handles the compensation (rollback) of payment update
 type paymentUpdateCompensation struct {
 	producer  outbound.Producer
 	oldUser   *entity.User
@@ -176,7 +86,7 @@ func (c *paymentUpdateCompensation) Compensate(ctx context.Context) error {
 	if err := c.producer.Push(ctx, "payment.rollback", bytes); err != nil {
 		return fmt.Errorf("failed to publish payment rollback: %w", err)
 	}
-
+	c.isRan = true
 	return nil
 }
 
@@ -184,6 +94,11 @@ func (c *paymentUpdateCompensation) Ran() bool {
 	return c.isRan
 }
 
+func (c *paymentUpdateCompensation) Name() string {
+	return PAYMENT_UPDATE_COMPENSATE
+}
+
+// NewPaymentUpdateCompensation creates a new payment update compensation command
 func NewPaymentUpdateCompensation(producer outbound.Producer, oldUser *entity.User) command.Compensation {
 	return &paymentUpdateCompensation{
 		producer:  producer,
@@ -192,10 +107,7 @@ func NewPaymentUpdateCompensation(producer outbound.Producer, oldUser *entity.Us
 	}
 }
 
-func (c *paymentUpdateCompensation) Name() string {
-	return PAYMENT_UPDATE_COMPENSATE
-}
-
+// paymentUpdateVerification handles the verification of payment update
 type paymentUpdateVerification struct {
 	subscriber outbound.Subscriber
 	isRan      bool
@@ -216,6 +128,7 @@ func (c *paymentUpdateVerification) Verify(ctx context.Context) error {
 	if !response.Accepted {
 		return fmt.Errorf("payment service rejected pending data: %s", response.Message)
 	}
+	c.isRan = true
 	return nil
 }
 
@@ -227,22 +140,26 @@ func (c *paymentUpdateVerification) Name() string {
 	return PAYMENT_UPDATE_VERIFICATION
 }
 
+// NewPaymentUpdateVerification creates a new payment update verification command
 func NewPaymentUpdateVerification(subscriber outbound.Subscriber) command.Verification {
 	return &paymentUpdateVerification{
 		subscriber: subscriber,
 	}
 }
 
+// paymentUpdateApproval handles the approval of payment update
 type paymentUpdateApproval struct {
-	producer outbound.Producer
-	isRan    bool
-	userID   string
+	producer  outbound.Producer
+	userID    string
+	commandID uuid.UUID
+	isRan     bool
 }
 
 func (c *paymentUpdateApproval) Approve(ctx context.Context) error {
 	bytes, err := json.Marshal(map[string]interface{}{
-		"event":   "payment.approve",
-		"user_id": c.userID,
+		"event":      "payment.approve",
+		"user_id":    c.userID,
+		"command_id": c.commandID,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to marshal payment approve event: %w", err)
@@ -251,7 +168,7 @@ func (c *paymentUpdateApproval) Approve(ctx context.Context) error {
 	if err := c.producer.Push(ctx, "payment.approve", bytes); err != nil {
 		return fmt.Errorf("failed to publish payment approve: %w", err)
 	}
-
+	c.isRan = true
 	return nil
 }
 
@@ -260,12 +177,15 @@ func (c *paymentUpdateApproval) Ran() bool {
 }
 
 func (c *paymentUpdateApproval) Name() string {
-	return PAYMENT_UPDATE_VERIFICATION
+	return PAYMENT_UPDATE_APPROVE
 }
 
+// NewPaymentUpdateApproval creates a new payment update approval command
 func NewPaymentUpdateApproval(producer outbound.Producer, userID string) command.Approval {
 	return &paymentUpdateApproval{
-		producer: producer,
-		userID:   userID,
+		producer:  producer,
+		userID:    userID,
+		commandID: uuid.New(),
 	}
 }
+

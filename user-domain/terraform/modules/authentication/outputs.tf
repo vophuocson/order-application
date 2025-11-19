@@ -13,3 +13,4 @@ output "auth_role_name" {
   value       = aws_iam_role.auth_role.name
 }
 
+

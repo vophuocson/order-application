@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"user-domain/internal/application/orchestrator/command"
 	"user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
 
@@ -20,6 +21,12 @@ const (
 	PAYMENT_UPDATE_VERIFICATION = "PaymentUpdateVerification"
 )
 
+type VerificationResponse struct {
+	ServiceName string
+	Accepted    bool
+	Message     string
+	Error       error
+}
 type userUpdateApproval struct {
 	producer  outbound.Producer
 	userID    string
@@ -51,7 +58,7 @@ func (c *userUpdateApproval) Name() string {
 	return USER_UPDATE_APPROVE
 }
 
-func NewUserUpdateApproval(producer outbound.Producer, userID string) Approval {
+func NewUserUpdateApproval(producer outbound.Producer, userID string) command.Approval {
 	return &userUpdateApproval{
 		producer:  producer,
 		userID:    userID,
@@ -91,7 +98,7 @@ func (c *userUpdateCompensation) Name() string {
 	return USER_UPDATE_COMPENSATE
 }
 
-func NewUserUpdateCompensation(producer outbound.Producer, oldUser *entity.User) Compensation {
+func NewUserUpdateCompensation(producer outbound.Producer, oldUser *entity.User) command.Compensation {
 	return &userUpdateCompensation{
 		producer:  producer,
 		oldUser:   oldUser,
@@ -131,7 +138,7 @@ func (c *paymentUpdateExecution) Ran() bool {
 	return c.isRan
 }
 
-func NewPaymentUpdateExecution(producer outbound.Producer, newUser *entity.User) Execution {
+func NewPaymentUpdateExecution(producer outbound.Producer, newUser *entity.User) command.Execution {
 	return &paymentUpdateExecution{
 		producer:  producer,
 		newUser:   newUser,
@@ -177,7 +184,7 @@ func (c *paymentUpdateCompensation) Ran() bool {
 	return c.isRan
 }
 
-func NewPaymentUpdateCompensation(producer outbound.Producer, oldUser *entity.User) Compensation {
+func NewPaymentUpdateCompensation(producer outbound.Producer, oldUser *entity.User) command.Compensation {
 	return &paymentUpdateCompensation{
 		producer:  producer,
 		oldUser:   oldUser,
@@ -220,7 +227,7 @@ func (c *paymentUpdateVerification) Name() string {
 	return PAYMENT_UPDATE_VERIFICATION
 }
 
-func NewPaymentUpdateVerification(subscriber outbound.Subscriber) Verification {
+func NewPaymentUpdateVerification(subscriber outbound.Subscriber) command.Verification {
 	return &paymentUpdateVerification{
 		subscriber: subscriber,
 	}
@@ -256,7 +263,7 @@ func (c *paymentUpdateApproval) Name() string {
 	return PAYMENT_UPDATE_VERIFICATION
 }
 
-func NewPaymentUpdateApproval(producer outbound.Producer, userID string) Approval {
+func NewPaymentUpdateApproval(producer outbound.Producer, userID string) command.Approval {
 	return &paymentUpdateApproval{
 		producer: producer,
 		userID:   userID,

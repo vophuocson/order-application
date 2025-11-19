@@ -1,4 +1,4 @@
-package action
+package command
 
 import "context"
 
@@ -26,11 +26,4 @@ type Approval interface {
 	Approve(ctx context.Context) error
 	Name() string
 	Ran() bool
-}
-
-type VerificationResponse struct {
-	ServiceName string
-	Accepted    bool
-	Message     string
-	Error       error
 }

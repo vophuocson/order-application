@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"user-domain/internal/application/orchestrator/action"
+	"user-domain/internal/application/orchestrator/command"
 	"user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
 )
@@ -51,10 +52,10 @@ type UserUpdationWorkflow struct {
 	executedSteps []int
 	executionLogs []*SagaExecuteLog
 	lastError     error
-	Executions    []action.Execution
-	Verifications []action.Verification
-	Compensations []action.Compensation
-	Approvals     []action.Approval
+	Executions    []command.Execution
+	Verifications []command.Verification
+	Compensations []command.Compensation
+	Approvals     []command.Approval
 }
 
 // func (u *UserUpdationWorkflow) GetExecutions() []action.Execution {
@@ -102,7 +103,7 @@ func (w *UserUpdationWorkflow) Execute(ctx context.Context) error {
 			continue
 		}
 		waitGroup.Add(1)
-		go func(idx int, e action.Execution) {
+		go func(idx int, e command.Execution) {
 			defer waitGroup.Done()
 			w.logStep(e.Name(), idx, "command", nil)
 			err := e.Execute(ctx)
@@ -133,7 +134,7 @@ func (w *UserUpdationWorkflow) Verify(ctx context.Context) error {
 			continue
 		}
 		waitGroup.Add(1)
-		go func(idx int, v action.Verification) {
+		go func(idx int, v command.Verification) {
 			w.logStep(v.Name(), idx, "verify", nil)
 			err := v.Verify(ctx)
 			if err != nil {
@@ -161,7 +162,7 @@ func (w *UserUpdationWorkflow) Compensate(ctx context.Context) error {
 			continue
 		}
 		waitGroup.Add(1)
-		go func(idx int, c action.Compensation) {
+		go func(idx int, c command.Compensation) {
 			defer waitGroup.Done()
 			w.logStep(c.Name(), idx, "compensate", nil)
 			err := c.Compensate(ctx)
@@ -190,7 +191,7 @@ func (w *UserUpdationWorkflow) Approve(ctx context.Context) error {
 			continue
 		}
 		waitGroup.Add(1)
-		go func(idx int, a action.Approval) {
+		go func(idx int, a command.Approval) {
 			defer waitGroup.Done()
 			w.logStep(a.Name(), idx, "approve", nil)
 			err := a.Approve(ctx)

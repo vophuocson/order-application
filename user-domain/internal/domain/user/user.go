@@ -8,8 +8,9 @@ import (
 )
 
 type user struct {
-	repo   outport.UserRepository
-	logger outport.Logger
+	repo         outport.UserRepository
+	logger       outport.Logger
+	orchestrator outport.WorkflowOrchestrator
 }
 
 func (u *user) CreateUser(ctx context.Context, user *entity.User) error {
@@ -29,9 +30,19 @@ func (u *user) GetUserByID(ctx context.Context, id string) (*entity.User, error)
 }
 
 func (u *user) UpdateUser(ctx context.Context, user *entity.User) error {
-	// implement bussiness logic here
-	err := u.repo.UpdateUser(ctx, user)
-	return err
+	old, err := u.repo.GetUserByID(ctx, user.ID)
+	if err != nil {
+		return err
+	}
+	err = u.repo.UpdateUser(ctx, user)
+	if err != nil {
+		return err
+	}
+	err = u.orchestrator.ExecuteUserUpdation(ctx, user, old)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u *user) DeleteUser(ctx context.Context, id string) error {
@@ -46,6 +57,6 @@ func (u *user) ListUsers(ctx context.Context, offset, limit int) ([]*entity.User
 	return entities, nil
 }
 
-func NewUserService(r outport.UserRepository, logger outport.Logger) inport.UserService {
-	return &user{repo: r, logger: logger}
+func NewUserService(r outport.UserRepository, logger outport.Logger, orchestrator outport.WorkflowOrchestrator) inport.UserService {
+	return &user{repo: r, logger: logger, orchestrator: orchestrator}
 }

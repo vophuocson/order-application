@@ -7,6 +7,8 @@ import (
 	"user-domain/internal/application/outbound"
 	"user-domain/internal/domain/outport"
 	"user-domain/internal/entity"
+
+	"github.com/google/uuid"
 )
 
 type orchestrator struct {
@@ -19,7 +21,8 @@ type orchestrator struct {
 func (o *orchestrator) ExecuteUserUpdation(ctx context.Context, revertUser, newUser *entity.User) error {
 	o.logger.Info("Starting user update orchestration for user ID: %s", newUser.ID)
 	updateWorkflow := workflow.NewUpdationUserWorkflow(o.producer, o.subscriber, revertUser, newUser)
-	err := o.workflowRuner.Execute(ctx, updateWorkflow.Run)
+	workflowID := "user_updation" + uuid.New().String()
+	err := o.workflowRuner.Execute(ctx, workflowID, USER_UPDATION, updateWorkflow.Run)
 	if err != nil {
 		o.logger.Error("User update workflow failed: %v", err)
 		o.logExecutionTrace(updateWorkflow)

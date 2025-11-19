@@ -9,6 +9,7 @@ import (
 	controlleruser "user-domain/internal/application/controller/user"
 	"user-domain/internal/application/inbound"
 	"user-domain/internal/application/logger"
+	"user-domain/internal/application/orchestrator"
 	"user-domain/internal/application/outbound"
 	repositoryuser "user-domain/internal/application/repository/user"
 	domainuser "user-domain/internal/domain/user"
@@ -34,7 +35,12 @@ func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound outbound.Logge
 	userRepo := repositoryuser.NewUserRepo(userPersistence)
 
 	loggerOutport := logger.NewLogger(loggerOutbound)
-	userService := domainuser.NewUserService(userRepo, loggerOutport)
+	
+	// For production, replace NewNoopOrchestrator with a real orchestrator implementation
+	// that includes Producer, Subscriber, and WorkflowRunner
+	workflowOrchestrator := orchestrator.NewNoopOrchestrator()
+	
+	userService := domainuser.NewUserService(userRepo, loggerOutport, workflowOrchestrator)
 
 	userControler := controlleruser.NewUserControler(userService, loggerOutbound)
 

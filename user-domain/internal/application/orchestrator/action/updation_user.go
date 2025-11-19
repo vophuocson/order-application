@@ -61,7 +61,7 @@ func NewUserUpdateApproval(producer outbound.Producer, userID string) Approval {
 
 type userUpdateCompensation struct {
 	producer  outbound.Producer
-	userID    string
+	oldUser   *entity.User
 	commandID uuid.UUID
 	isRan     bool
 }
@@ -69,7 +69,7 @@ type userUpdateCompensation struct {
 func (c *userUpdateCompensation) Compensate(ctx context.Context) error {
 	bytes, err := json.Marshal(map[string]interface{}{
 		"event":      "user.rollback",
-		"user_id":    c.userID,
+		"user":       c.oldUser,
 		"command_id": c.commandID,
 	})
 	if err != nil {
@@ -91,10 +91,10 @@ func (c *userUpdateCompensation) Name() string {
 	return USER_UPDATE_COMPENSATE
 }
 
-func NewUserUpdateCompensation(producer outbound.Producer, userID string) Compensation {
+func NewUserUpdateCompensation(producer outbound.Producer, oldUser *entity.User) Compensation {
 	return &userUpdateCompensation{
 		producer:  producer,
-		userID:    userID,
+		oldUser:   oldUser,
 		commandID: uuid.New(),
 	}
 }

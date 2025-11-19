@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"user-domain/internal/application/orchestrator/action"
+	"user-domain/internal/application/outbound"
+	"user-domain/internal/entity"
 )
 
 type SagaState int
@@ -54,6 +56,22 @@ type UserUpdationWorkflow struct {
 	Compensations []action.Compensation
 	Approvals     []action.Approval
 }
+
+// func (u *UserUpdationWorkflow) GetExecutions() []action.Execution {
+// 	return u.Executions
+// }
+
+// func (u *UserUpdationWorkflow) GetVerifications() []action.Verification {
+// 	return u.Verifications
+// }
+
+// func (u *UserUpdationWorkflow) GetCompensations() []action.Compensation {
+// 	return u.Compensations
+// }
+
+// func (u *UserUpdationWorkflow) GetApproval() []action.Approval {
+// 	return u.Approvals
+// }
 
 func (w *UserUpdationWorkflow) logStep(stepName string, stepIndex int, state string, err error) {
 	w.executionLogs = append(w.executionLogs, &SagaExecuteLog{
@@ -239,4 +257,27 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 	w.logStep("All Commands", 0, "Completed Successfully", nil)
 	return nil
 
+}
+
+func NewUpdationUserWorkflow(producer outbound.Producer, subscirber outbound.Subscriber, oldUser, newUser *entity.User) *UserUpdationWorkflow {
+	workflow := UserUpdationWorkflow{}
+	userApproval := action.NewUserUpdateApproval(producer, newUser.ID)
+	workflow.Approvals = append(workflow.Approvals, userApproval)
+
+	userCompensate := action.NewUserUpdateCompensation(producer, oldUser)
+	workflow.Compensations = append(workflow.Compensations, userCompensate)
+
+	paymentExecution := action.NewPaymentUpdateExecution(producer, newUser)
+	workflow.Executions = append(workflow.Executions, paymentExecution)
+
+	paymenCompensation := action.NewPaymentUpdateCompensation(producer, oldUser)
+	workflow.Compensations = append(workflow.Compensations, paymenCompensation)
+
+	paymenVerification := action.NewPaymentUpdateVerification(subscirber)
+	workflow.Verifications = append(workflow.Verifications, paymenVerification)
+
+	paymenApproval := action.NewPaymentUpdateApproval(producer, newUser.ID)
+	workflow.Approvals = append(workflow.Approvals, paymenApproval)
+
+	return &workflow
 }

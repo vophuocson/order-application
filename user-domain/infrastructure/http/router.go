@@ -18,29 +18,29 @@ import (
 	"gorm.io/gorm"
 )
 
-func BuildRouter(db *gorm.DB, logger outbound.Logger) *chi.Mux {
+func BuildRouter(db *gorm.DB, logger outbound.Logger, workflowRuner outbound.WorkflowRuner) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.LoggingMiddleware(logger))
 	r.Route("/api/v1", func(r chi.Router) {
-		buildUserSubRouter(r, db, logger)
+		buildUserSubRouter(r, db, logger, workflowRuner)
 	})
 	return r
 }
 
-func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound outbound.Logger) {
+func buildUserSubRouter(r chi.Router, db *gorm.DB, loggerOutbound outbound.Logger, workflowRuner outbound.WorkflowRuner) {
 	userPersistence := postgresuser.NewUserRepo(db)
 	userRepo := repositoryuser.NewUserRepo(userPersistence)
 
 	loggerOutport := logger.NewLogger(loggerOutbound)
-	
-	// For production, replace NewNoopOrchestrator with a real orchestrator implementation
-	// that includes Producer, Subscriber, and WorkflowRunner
-	workflowOrchestrator := orchestrator.NewNoopOrchestrator()
-	
-	userService := domainuser.NewUserService(userRepo, loggerOutport, workflowOrchestrator)
+
+	var producer outbound.Producer
+	var subscriber outbound.Subscriber
+	o := orchestrator.NewWorkflowStarter(producer, subscriber, loggerOutbound, workflowRuner)
+
+	userService := domainuser.NewUserService(userRepo, loggerOutport, o)
 
 	userControler := controlleruser.NewUserControler(userService, loggerOutbound)
 

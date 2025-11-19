@@ -2,12 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 	"user-domain/infrastructure/config"
 	"user-domain/infrastructure/database"
 	router "user-domain/infrastructure/http"
 	"user-domain/infrastructure/logger"
+	"user-domain/infrastructure/orchestrator"
+
+	"go.temporal.io/sdk/client"
 )
 
 type Server struct {
@@ -21,9 +25,15 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	c, err := client.Dial(client.Options{})
+	if err != nil {
+		log.Fatalln("Unable to create client", err)
+	}
+	defer c.Close()
+	workflowRuner := orchestrator.NewTemporalClient(c)
 	// flush buffer before exiting
 	defer logger.Sync()
-	r := router.BuildRouter(gorm, logger)
+	r := router.BuildRouter(gorm, logger, workflowRuner)
 	s := Server{
 		httpServer: &http.Server{
 			Handler:      r,

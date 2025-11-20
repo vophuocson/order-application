@@ -18,4 +18,3 @@ type VerificationResponse struct {
 	Message     string
 	Error       error
 }
-

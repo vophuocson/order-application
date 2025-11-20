@@ -49,21 +49,51 @@ type SagaExecuteLog struct {
 	Error     error
 }
 
-// UserUpdationWorkflow implements the Workflow interface for user update operations
-// It follows the Saga pattern with Execute, Verify, Approve, and Compensate phases
-type UserUpdationWorkflow struct {
-	state         SagaState
+// UserUpdationActivity handles the execution of saga activities
+// It contains execute, verify, compensate, and approve methods
+type UserUpdationActivity struct {
 	executedSteps []int
 	executionLogs []*SagaExecuteLog
-	lastError     error
 	executions    []command.Execution
 	verifications []command.Verification
 	compensations []command.Compensation
 	approvals     []command.Approval
 }
 
-func (w *UserUpdationWorkflow) logStep(stepName string, stepIndex int, state string, err error) {
-	w.executionLogs = append(w.executionLogs, &SagaExecuteLog{
+// NewUserUpdationActivity creates a new activity instance
+func NewUserUpdationActivity() *UserUpdationActivity {
+	return &UserUpdationActivity{
+		executedSteps: make([]int, 0),
+		executionLogs: make([]*SagaExecuteLog, 0),
+		executions:    make([]command.Execution, 0),
+		verifications: make([]command.Verification, 0),
+		compensations: make([]command.Compensation, 0),
+		approvals:     make([]command.Approval, 0),
+	}
+}
+
+// addExecution adds an execution command to the activity
+func (a *UserUpdationActivity) addExecution(exec command.Execution) {
+	a.executions = append(a.executions, exec)
+}
+
+// addVerification adds a verification command to the activity
+func (a *UserUpdationActivity) addVerification(verify command.Verification) {
+	a.verifications = append(a.verifications, verify)
+}
+
+// addCompensation adds a compensation command to the activity
+func (a *UserUpdationActivity) addCompensation(compensate command.Compensation) {
+	a.compensations = append(a.compensations, compensate)
+}
+
+// addApproval adds an approval command to the activity
+func (a *UserUpdationActivity) addApproval(approve command.Approval) {
+	a.approvals = append(a.approvals, approve)
+}
+
+func (a *UserUpdationActivity) logStep(stepName string, stepIndex int, state string, err error) {
+	a.executionLogs = append(a.executionLogs, &SagaExecuteLog{
 		StepName:  stepName,
 		StepIndex: stepIndex,
 		State:     state,
@@ -71,38 +101,26 @@ func (w *UserUpdationWorkflow) logStep(stepName string, stepIndex int, state str
 	})
 }
 
-func (w *UserUpdationWorkflow) GetState() string {
-	return w.state.String()
-}
-
-func (w *UserUpdationWorkflow) GetExecutionLogs() []*SagaExecuteLog {
-	return w.executionLogs
-}
-
-func (w *UserUpdationWorkflow) GetLastError() error {
-	return w.lastError
-}
-
 // execute runs all execution commands in parallel
-func (w *UserUpdationWorkflow) execute(ctx context.Context) error {
+func (a *UserUpdationActivity) Execute(ctx context.Context) error {
 	var waitGroup sync.WaitGroup
-	errChan := make(chan error, len(w.executions))
-	for idx, e := range w.executions {
+	errChan := make(chan error, len(a.executions))
+	for idx, e := range a.executions {
 		if e.Ran() {
 			continue
 		}
 		waitGroup.Add(1)
 		go func(idx int, e command.Execution) {
 			defer waitGroup.Done()
-			w.logStep(e.Name(), idx, "command", nil)
+			a.logStep(e.Name(), idx, "command", nil)
 			err := e.Execute(ctx)
 			if err != nil {
-				w.logStep(e.Name(), idx, "command: Failed", err)
+				a.logStep(e.Name(), idx, "command: Failed", err)
 				errChan <- fmt.Errorf("command %s failed: %w", e.Name(), err)
 				return
 			}
-			w.logStep(e.Name(), idx, "execute: Sent", nil)
-			w.executedSteps = append(w.executedSteps, idx)
+			a.logStep(e.Name(), idx, "execute: Sent", nil)
+			a.executedSteps = append(a.executedSteps, idx)
 		}(idx, e)
 	}
 	waitGroup.Wait()
@@ -116,20 +134,20 @@ func (w *UserUpdationWorkflow) execute(ctx context.Context) error {
 }
 
 // verify runs all verification commands in parallel
-func (w *UserUpdationWorkflow) verify(ctx context.Context) error {
+func (a *UserUpdationActivity) Verify(ctx context.Context) error {
 	var waitGroup sync.WaitGroup
-	var errChan = make(chan error, len(w.verifications))
-	for idx, v := range w.verifications {
+	var errChan = make(chan error, len(a.verifications))
+	for idx, v := range a.verifications {
 		if v.Ran() {
 			continue
 		}
 		waitGroup.Add(1)
 		go func(idx int, v command.Verification) {
 			defer waitGroup.Done()
-			w.logStep(v.Name(), idx, "verify", nil)
+			a.logStep(v.Name(), idx, "verify", nil)
 			err := v.Verify(ctx)
 			if err != nil {
-				w.logStep(v.Name(), idx, "verify: error", err)
+				a.logStep(v.Name(), idx, "verify: error", err)
 				errChan <- fmt.Errorf("verify %s failed: %w", v.Name(), err)
 				return
 			}
@@ -146,20 +164,20 @@ func (w *UserUpdationWorkflow) verify(ctx context.Context) error {
 }
 
 // compensate runs all compensation commands in parallel (for rollback)
-func (w *UserUpdationWorkflow) compensate(ctx context.Context) error {
+func (a *UserUpdationActivity) Compensate(ctx context.Context) error {
 	var waitGroup sync.WaitGroup
-	errChan := make(chan error, len(w.compensations))
-	for idx, c := range w.compensations {
+	errChan := make(chan error, len(a.compensations))
+	for idx, c := range a.compensations {
 		if c.Ran() {
 			continue
 		}
 		waitGroup.Add(1)
 		go func(idx int, c command.Compensation) {
 			defer waitGroup.Done()
-			w.logStep(c.Name(), idx, "compensate", nil)
+			a.logStep(c.Name(), idx, "compensate", nil)
 			err := c.Compensate(ctx)
 			if err != nil {
-				w.logStep(c.Name(), idx, "compensate: error", err)
+				a.logStep(c.Name(), idx, "compensate: error", err)
 				errChan <- fmt.Errorf("compensate %s failed: %w", c.Name(), err)
 				return
 			}
@@ -176,24 +194,24 @@ func (w *UserUpdationWorkflow) compensate(ctx context.Context) error {
 }
 
 // approve runs all approval commands in parallel
-func (w *UserUpdationWorkflow) approve(ctx context.Context) error {
+func (a *UserUpdationActivity) Approve(ctx context.Context) error {
 	var waitGroup sync.WaitGroup
-	errChan := make(chan error, len(w.approvals))
-	for idx, a := range w.approvals {
-		if a.Ran() {
+	errChan := make(chan error, len(a.approvals))
+	for idx, approval := range a.approvals {
+		if approval.Ran() {
 			continue
 		}
 		waitGroup.Add(1)
-		go func(idx int, a command.Approval) {
+		go func(idx int, approval command.Approval) {
 			defer waitGroup.Done()
-			w.logStep(a.Name(), idx, "approve", nil)
-			err := a.Approve(ctx)
+			a.logStep(approval.Name(), idx, "approve", nil)
+			err := approval.Approve(ctx)
 			if err != nil {
-				w.logStep(a.Name(), idx, "approve: error", err)
-				errChan <- fmt.Errorf("approve %s failed: %w", a.Name(), err)
+				a.logStep(approval.Name(), idx, "approve: error", err)
+				errChan <- fmt.Errorf("approve %s failed: %w", approval.Name(), err)
 				return
 			}
-		}(idx, a)
+		}(idx, approval)
 	}
 	waitGroup.Wait()
 	close(errChan)
@@ -205,6 +223,31 @@ func (w *UserUpdationWorkflow) approve(ctx context.Context) error {
 	return nil
 }
 
+// UserUpdationWorkflow implements the Workflow interface for user update operations
+// It follows the Saga pattern with Execute, Verify, Approve, and Compensate phases
+// This is the parent object that orchestrates the workflow using UserUpdationActivity
+type UserUpdationWorkflow struct {
+	state     SagaState
+	lastError error
+	activity  *UserUpdationActivity
+}
+
+func (w *UserUpdationWorkflow) logStep(stepName string, stepIndex int, state string, err error) {
+	w.activity.logStep(stepName, stepIndex, state, err)
+}
+
+func (w *UserUpdationWorkflow) GetState() string {
+	return w.state.String()
+}
+
+func (w *UserUpdationWorkflow) GetExecutionLogs() []*SagaExecuteLog {
+	return w.activity.executionLogs
+}
+
+func (w *UserUpdationWorkflow) GetLastError() error {
+	return w.lastError
+}
+
 // Run executes the complete saga workflow with all phases
 // Phase 1: Execute - Send pending requests to all services
 // Phase 2: Verify - Wait for all services to accept pending data
@@ -214,12 +257,12 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 	// Phase 1: Execute - Send pending requests to all services (PARALLEL)
 	w.logStep("All Commands", 0, "Phase 1: Executing Pending", nil)
 	w.state = SagaStateRunning
-	err := w.execute(ctx)
+	err := w.activity.Execute(ctx)
 	if err != nil {
 		w.state = SagaStateFailed
 		w.lastError = err
 		w.logStep("All Commands", 0, "Phase 1: Execute Failed", err)
-		compensateErr := w.compensate(ctx)
+		compensateErr := w.activity.Compensate(ctx)
 		if compensateErr != nil {
 			return fmt.Errorf("command failed and compensation also failed: execution error: %v, compensation error: %v", err, compensateErr)
 		}
@@ -228,13 +271,13 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 
 	// Phase 2: Verify - Check if all services accepted pending data (PARALLEL)
 	w.logStep("All Commands", 0, "Phase 2: Verifying", nil)
-	if err := w.verify(ctx); err != nil {
+	if err := w.activity.Verify(ctx); err != nil {
 		w.state = SagaStateFailed
 		w.lastError = err
 
 		// Compensation: Rollback all pending data
 		w.logStep("All Commands", 0, "Compensating (Verification Failed)", err)
-		if compErr := w.compensate(ctx); compErr != nil {
+		if compErr := w.activity.Compensate(ctx); compErr != nil {
 			return fmt.Errorf("verification failed and compensation also failed: verification error: %v, compensation error: %v", err, compErr)
 		}
 		return fmt.Errorf("verification phase failed: %w", err)
@@ -242,12 +285,12 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 
 	// Phase 3: Approve - Commit the changes across all services (PARALLEL)
 	w.logStep("All Commands", 0, "Phase 3: Approving", nil)
-	if err := w.approve(ctx); err != nil {
+	if err := w.activity.Approve(ctx); err != nil {
 		w.state = SagaStateFailed
 		w.lastError = err
 
 		w.logStep("All Commands", 0, "Compensating (Approve Failed)", err)
-		if compErr := w.compensate(ctx); compErr != nil {
+		if compErr := w.activity.Compensate(ctx); compErr != nil {
 			return fmt.Errorf("approve failed and compensation also failed: approve error: %v, compensation error: %v", err, compErr)
 		}
 
@@ -262,33 +305,38 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 // NewUpdationUserWorkflow creates a new user update workflow with all necessary commands
 // This workflow coordinates user updates across multiple services using the Saga pattern
 func NewUpdationUserWorkflow(producer outbound.Producer, subscriber outbound.Subscriber, oldUser, newUser *entity.User) Workflow {
-	workflow := &UserUpdationWorkflow{
-		state: SagaStateInitial,
-	}
+	// Create the activity (child object)
+	activity := NewUserUpdationActivity()
 
 	// User update approval
 	userApproval := action.NewUserUpdateApproval(producer, newUser.ID)
-	workflow.approvals = append(workflow.approvals, userApproval)
+	activity.addApproval(userApproval)
 
 	// User update compensation (rollback)
 	userCompensate := action.NewUserUpdateCompensation(producer, oldUser)
-	workflow.compensations = append(workflow.compensations, userCompensate)
+	activity.addCompensation(userCompensate)
 
 	// Payment update execution
 	paymentExecution := action.NewPaymentUpdateExecution(producer, newUser)
-	workflow.executions = append(workflow.executions, paymentExecution)
+	activity.addExecution(paymentExecution)
 
 	// Payment update compensation (rollback)
 	paymentCompensation := action.NewPaymentUpdateCompensation(producer, oldUser)
-	workflow.compensations = append(workflow.compensations, paymentCompensation)
+	activity.addCompensation(paymentCompensation)
 
 	// Payment update verification
 	paymentVerification := action.NewPaymentUpdateVerification(subscriber)
-	workflow.verifications = append(workflow.verifications, paymentVerification)
+	activity.addVerification(paymentVerification)
 
 	// Payment update approval
 	paymentApproval := action.NewPaymentUpdateApproval(producer, newUser.ID)
-	workflow.approvals = append(workflow.approvals, paymentApproval)
+	activity.addApproval(paymentApproval)
+
+	// Create the workflow (parent object)
+	workflow := &UserUpdationWorkflow{
+		state:    SagaStateInitial,
+		activity: activity,
+	}
 
 	return workflow
 }

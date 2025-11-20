@@ -47,7 +47,7 @@ func (c *paymentUpdateExecution) Ran() bool {
 }
 
 func (c *paymentUpdateExecution) Name() string {
-	return PAYMENT_UPDATE_EXECUTE
+	return command.PAYMENT_UPDATE_EXECUTE
 }
 
 // NewPaymentUpdateExecution creates a new payment update execution command
@@ -95,7 +95,7 @@ func (c *paymentUpdateCompensation) Ran() bool {
 }
 
 func (c *paymentUpdateCompensation) Name() string {
-	return PAYMENT_UPDATE_COMPENSATE
+	return command.PAYMENT_UPDATE_COMPENSATE
 }
 
 // NewPaymentUpdateCompensation creates a new payment update compensation command
@@ -137,7 +137,7 @@ func (c *paymentUpdateVerification) Ran() bool {
 }
 
 func (c *paymentUpdateVerification) Name() string {
-	return PAYMENT_UPDATE_VERIFICATION
+	return command.PAYMENT_UPDATE_VERIFICATION
 }
 
 // NewPaymentUpdateVerification creates a new payment update verification command
@@ -177,7 +177,7 @@ func (c *paymentUpdateApproval) Ran() bool {
 }
 
 func (c *paymentUpdateApproval) Name() string {
-	return PAYMENT_UPDATE_APPROVE
+	return command.PAYMENT_UPDATE_APPROVE
 }
 
 // NewPaymentUpdateApproval creates a new payment update approval command
@@ -188,4 +188,3 @@ func NewPaymentUpdateApproval(producer outbound.Producer, userID string) command
 		commandID: uuid.New(),
 	}
 }
-

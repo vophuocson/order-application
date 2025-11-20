@@ -40,7 +40,7 @@ func (c *userUpdateApproval) Ran() bool {
 }
 
 func (c *userUpdateApproval) Name() string {
-	return USER_UPDATE_APPROVE
+	return command.USER_UPDATE_APPROVE
 }
 
 // NewUserUpdateApproval creates a new user update approval command
@@ -82,7 +82,7 @@ func (c *userUpdateCompensation) Ran() bool {
 }
 
 func (c *userUpdateCompensation) Name() string {
-	return USER_UPDATE_COMPENSATE
+	return command.USER_UPDATE_COMPENSATE
 }
 
 // NewUserUpdateCompensation creates a new user update compensation command
@@ -93,4 +93,3 @@ func NewUserUpdateCompensation(producer outbound.Producer, oldUser *entity.User)
 		commandID: uuid.New(),
 	}
 }
-

@@ -8,9 +8,6 @@ type Workflow interface {
 	Run(ctx context.Context) error
 	// GetState returns the current state of the workflow
 	GetState() string
-	// GetExecutionLogs returns all execution logs
-	GetExecutionLogs() []*SagaExecuteLog
 	// GetLastError returns the last error that occurred
 	GetLastError() error
 }
-

@@ -2,7 +2,6 @@ package orchestrator
 
 import (
 	"context"
-	"fmt"
 	"user-domain/internal/application/orchestrator/workflow"
 	"user-domain/internal/application/outbound"
 	"user-domain/internal/domain/outport"
@@ -20,32 +19,25 @@ type orchestrator struct {
 
 func (o *orchestrator) ExecuteUserUpdation(ctx context.Context, revertUser, newUser *entity.User) error {
 	o.logger.Info("Starting user update orchestration for user ID: %s", newUser.ID)
-	updateWorkflow := workflow.NewUpdationUserWorkflow(o.producer, o.subscriber, revertUser, newUser)
+
+	// Create workflow with logging observer
+	loggingObserver := workflow.NewLoggingObserver(o.logger)
+	updateWorkflow := workflow.NewUpdationUserWorkflowWithObservers(
+		o.producer,
+		o.subscriber,
+		revertUser,
+		newUser,
+		loggingObserver,
+	)
+
 	workflowID := "user_updation" + uuid.New().String()
 	err := o.workflowRuner.Execute(ctx, workflowID, USER_UPDATION, updateWorkflow.Run)
 	if err != nil {
 		o.logger.Error("User update workflow failed: %v", err)
-		o.logExecutionTrace(updateWorkflow)
 		return err
 	}
 	o.logger.Info("User update orchestration completed successfully for user ID: %s", newUser.ID)
-	o.logExecutionTrace(updateWorkflow)
 	return nil
-}
-
-func (o *orchestrator) logExecutionTrace(wf workflow.Workflow) {
-	logs := wf.GetExecutionLogs()
-	o.logger.Info("Workflow final state: %s", wf.GetState())
-
-	for _, log := range logs {
-		msg := fmt.Sprintf("Step %d [%s]: %s", log.StepIndex+1, log.StepName, log.State)
-		if log.Error != nil {
-			msg += fmt.Sprintf(" - Error: %v", log.Error)
-			o.logger.Error("%s", msg)
-		} else {
-			o.logger.Info("%s", msg)
-		}
-	}
 }
 
 func NewWorkflowStarter(

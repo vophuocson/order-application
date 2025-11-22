@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 	"user-domain/internal/application/orchestrator/action"
 	"user-domain/internal/application/orchestrator/command"
+	"user-domain/internal/application/orchestrator/workflow/observer"
 	"user-domain/internal/application/outbound"
 	"user-domain/internal/entity"
 )
@@ -39,14 +41,6 @@ func (s SagaState) String() string {
 	default:
 		return "Unknown"
 	}
-}
-
-// SagaExecuteLog represents a log entry for a saga step execution
-type SagaExecuteLog struct {
-	StepName  string
-	StepIndex int
-	State     string
-	Error     error
 }
 
 // ActivityStep represents a single step in the saga with all its phases
@@ -96,20 +90,20 @@ func (s *ActivityStep) SetApproval(approve command.Approval) *ActivityStep {
 // It contains execute, verify, compensate, and approve methods
 type UserUpdationActivity struct {
 	steps         []*ActivityStep
-	mu            sync.Mutex           // protects executed flags
-	eventNotifier func(*WorkflowEvent) // callback to notify observers
+	mu            sync.Mutex                    // protects executed flags
+	eventNotifier func(*observer.WorkflowEvent) // callback to notify observers
 }
 
 // NewUserUpdationActivity creates a new activity instance
 func NewUserUpdationActivity() *UserUpdationActivity {
 	return &UserUpdationActivity{
 		steps:         make([]*ActivityStep, 0),
-		eventNotifier: func(*WorkflowEvent) {}, // no-op by default
+		eventNotifier: func(*observer.WorkflowEvent) {}, // no-op by default
 	}
 }
 
 // SetEventNotifier sets the event notification callback
-func (a *UserUpdationActivity) SetEventNotifier(notifier func(*WorkflowEvent)) {
+func (a *UserUpdationActivity) SetEventNotifier(notifier func(*observer.WorkflowEvent)) {
 	a.eventNotifier = notifier
 }
 
@@ -119,7 +113,7 @@ func (a *UserUpdationActivity) AddStep(step *ActivityStep) {
 }
 
 // notifyEvent sends an event notification
-func (a *UserUpdationActivity) notifyEvent(event *WorkflowEvent) {
+func (a *UserUpdationActivity) notifyEvent(event *observer.WorkflowEvent) {
 	if a.eventNotifier != nil {
 		a.eventNotifier(event)
 	}
@@ -142,19 +136,26 @@ func (a *UserUpdationActivity) Execute(ctx context.Context) error {
 		go func(idx int, step *ActivityStep) {
 			defer waitGroup.Done()
 
+			// Track execution time for performance monitoring
+			startTime := time.Now()
+
 			// Notify execution start
-			a.notifyEvent(NewWorkflowEvent(EventTypeExecuteStart, step.execution.Name(), idx, "execute", nil))
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeExecuteStart, step.execution.Name(), idx, "execute", nil))
 
 			err := step.execution.Execute(ctx)
+			duration := time.Since(startTime)
+
 			if err != nil {
-				// Notify execution failure
-				a.notifyEvent(NewWorkflowEvent(EventTypeExecuteFailed, step.execution.Name(), idx, "execute", err))
+				// Notify execution failure with duration
+				a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeExecuteFailed, step.execution.Name(), idx, "execute", err).
+					WithDuration(duration))
 				errChan <- fmt.Errorf("execution %s failed: %w", step.execution.Name(), err)
 				return
 			}
 
-			// Notify execution success
-			a.notifyEvent(NewWorkflowEvent(EventTypeExecuteSuccess, step.execution.Name(), idx, "execute", nil))
+			// Notify execution success with duration
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeExecuteSuccess, step.execution.Name(), idx, "execute", nil).
+				WithDuration(duration))
 
 			// Mark step as executed so compensation can run if needed
 			a.mu.Lock()
@@ -191,19 +192,26 @@ func (a *UserUpdationActivity) Verify(ctx context.Context) error {
 		go func(idx int, step *ActivityStep) {
 			defer waitGroup.Done()
 
+			// Track verification time
+			startTime := time.Now()
+
 			// Notify verification start
-			a.notifyEvent(NewWorkflowEvent(EventTypeVerifyStart, step.verification.Name(), idx, "verify", nil))
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeVerifyStart, step.verification.Name(), idx, "verify", nil))
 
 			err := step.verification.Verify(ctx)
+			duration := time.Since(startTime)
+
 			if err != nil {
-				// Notify verification failure
-				a.notifyEvent(NewWorkflowEvent(EventTypeVerifyFailed, step.verification.Name(), idx, "verify", err))
+				// Notify verification failure with duration
+				a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeVerifyFailed, step.verification.Name(), idx, "verify", err).
+					WithDuration(duration))
 				errChan <- fmt.Errorf("verification %s failed: %w", step.verification.Name(), err)
 				return
 			}
 
-			// Notify verification success
-			a.notifyEvent(NewWorkflowEvent(EventTypeVerifySuccess, step.verification.Name(), idx, "verify", nil))
+			// Notify verification success with duration
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeVerifySuccess, step.verification.Name(), idx, "verify", nil).
+				WithDuration(duration))
 		}(idx, step)
 	}
 	waitGroup.Wait()
@@ -236,19 +244,26 @@ func (a *UserUpdationActivity) Compensate(ctx context.Context) error {
 		go func(idx int, step *ActivityStep) {
 			defer waitGroup.Done()
 
+			// Track compensation time
+			startTime := time.Now()
+
 			// Notify compensation start
-			a.notifyEvent(NewWorkflowEvent(EventTypeCompensateStart, step.compensation.Name(), idx, "compensate", nil))
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeCompensateStart, step.compensation.Name(), idx, "compensate", nil))
 
 			err := step.compensation.Compensate(ctx)
+			duration := time.Since(startTime)
+
 			if err != nil {
-				// Notify compensation failure
-				a.notifyEvent(NewWorkflowEvent(EventTypeCompensateFailed, step.compensation.Name(), idx, "compensate", err))
+				// Notify compensation failure with duration
+				a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeCompensateFailed, step.compensation.Name(), idx, "compensate", err).
+					WithDuration(duration))
 				errChan <- fmt.Errorf("compensation %s failed: %w", step.compensation.Name(), err)
 				return
 			}
 
-			// Notify compensation success
-			a.notifyEvent(NewWorkflowEvent(EventTypeCompensateSuccess, step.compensation.Name(), idx, "compensate", nil))
+			// Notify compensation success with duration
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeCompensateSuccess, step.compensation.Name(), idx, "compensate", nil).
+				WithDuration(duration))
 		}(idx, step)
 	}
 	waitGroup.Wait()
@@ -280,19 +295,26 @@ func (a *UserUpdationActivity) Approve(ctx context.Context) error {
 		go func(idx int, step *ActivityStep) {
 			defer waitGroup.Done()
 
+			// Track approval time
+			startTime := time.Now()
+
 			// Notify approval start
-			a.notifyEvent(NewWorkflowEvent(EventTypeApproveStart, step.approval.Name(), idx, "approve", nil))
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeApproveStart, step.approval.Name(), idx, "approve", nil))
 
 			err := step.approval.Approve(ctx)
+			duration := time.Since(startTime)
+
 			if err != nil {
-				// Notify approval failure
-				a.notifyEvent(NewWorkflowEvent(EventTypeApproveFailed, step.approval.Name(), idx, "approve", err))
+				// Notify approval failure with duration
+				a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeApproveFailed, step.approval.Name(), idx, "approve", err).
+					WithDuration(duration))
 				errChan <- fmt.Errorf("approval %s failed: %w", step.approval.Name(), err)
 				return
 			}
 
-			// Notify approval success
-			a.notifyEvent(NewWorkflowEvent(EventTypeApproveSuccess, step.approval.Name(), idx, "approve", nil))
+			// Notify approval success with duration
+			a.notifyEvent(observer.NewWorkflowEvent(observer.EventTypeApproveSuccess, step.approval.Name(), idx, "approve", nil).
+				WithDuration(duration))
 		}(idx, step)
 	}
 	waitGroup.Wait()
@@ -313,16 +335,33 @@ type UserUpdationWorkflow struct {
 	state     SagaState
 	lastError error
 	activity  *UserUpdationActivity
-	observers []WorkflowObserver
+	observers []observer.WorkflowObserver
+	context   *observer.WorkflowContext // Workflow context for distributed tracing
 }
 
 // AddObserver adds an observer to the workflow
-func (w *UserUpdationWorkflow) AddObserver(observer WorkflowObserver) {
+func (w *UserUpdationWorkflow) AddObserver(observer observer.WorkflowObserver) {
 	w.observers = append(w.observers, observer)
 }
 
+// SetContext sets the workflow context for tracing
+func (w *UserUpdationWorkflow) SetContext(ctx *observer.WorkflowContext) {
+	w.context = ctx
+}
+
+// GetContext returns the workflow context
+func (w *UserUpdationWorkflow) GetContext() *observer.WorkflowContext {
+	return w.context
+}
+
 // notifyObservers notifies all observers of an event
-func (w *UserUpdationWorkflow) notifyObservers(event *WorkflowEvent) {
+// Automatically injects workflow context into events for tracing
+func (w *UserUpdationWorkflow) notifyObservers(event *observer.WorkflowEvent) {
+	// Inject workflow context if available and not already set
+	if w.context != nil && event.Context == nil {
+		event = event.WithContext(w.context)
+	}
+
 	for _, observer := range w.observers {
 		observer.OnEvent(event)
 	}
@@ -343,7 +382,7 @@ func (w *UserUpdationWorkflow) GetLastError() error {
 // If any phase fails, compensate (rollback) all changes
 func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 	// Phase 1: Execute - Send pending requests to all services (PARALLEL)
-	phaseEvent := NewWorkflowEvent(EventTypePhaseStart, "All Commands", 0, "Phase 1: Execute", nil)
+	phaseEvent := observer.NewWorkflowEvent(observer.EventTypePhaseStart, "All Commands", 0, "Phase 1: Execute", nil)
 	w.notifyObservers(phaseEvent)
 
 	w.state = SagaStateRunning
@@ -353,7 +392,7 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 		w.lastError = err
 
 		// Notify phase failure
-		failEvent := NewWorkflowEvent(EventTypeExecuteFailed, "All Commands", 0, "Phase 1: Execute Failed", err)
+		failEvent := observer.NewWorkflowEvent(observer.EventTypeExecuteFailed, "All Commands", 0, "Phase 1: Execute Failed", err)
 		w.notifyObservers(failEvent)
 
 		// Compensate
@@ -365,7 +404,7 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 	}
 
 	// Phase 2: Verify - Check if all services accepted pending data (PARALLEL)
-	verifyEvent := NewWorkflowEvent(EventTypePhaseStart, "All Commands", 0, "Phase 2: Verify", nil)
+	verifyEvent := observer.NewWorkflowEvent(observer.EventTypePhaseStart, "All Commands", 0, "Phase 2: Verify", nil)
 	w.notifyObservers(verifyEvent)
 
 	if err := w.activity.Verify(ctx); err != nil {
@@ -373,7 +412,7 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 		w.lastError = err
 
 		// Notify verification failure
-		failEvent := NewWorkflowEvent(EventTypeVerifyFailed, "All Commands", 0, "Phase 2: Verification Failed", err)
+		failEvent := observer.NewWorkflowEvent(observer.EventTypeVerifyFailed, "All Commands", 0, "Phase 2: Verification Failed", err)
 		w.notifyObservers(failEvent)
 
 		// Compensation: Rollback all pending data
@@ -384,7 +423,7 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 	}
 
 	// Phase 3: Approve - Commit the changes across all services (PARALLEL)
-	approveEvent := NewWorkflowEvent(EventTypePhaseStart, "All Commands", 0, "Phase 3: Approve", nil)
+	approveEvent := observer.NewWorkflowEvent(observer.EventTypePhaseStart, "All Commands", 0, "Phase 3: Approve", nil)
 	w.notifyObservers(approveEvent)
 
 	if err := w.activity.Approve(ctx); err != nil {
@@ -392,7 +431,7 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 		w.lastError = err
 
 		// Notify approval failure
-		failEvent := NewWorkflowEvent(EventTypeApproveFailed, "All Commands", 0, "Phase 3: Approval Failed", err)
+		failEvent := observer.NewWorkflowEvent(observer.EventTypeApproveFailed, "All Commands", 0, "Phase 3: Approval Failed", err)
 		w.notifyObservers(failEvent)
 
 		if compErr := w.activity.Compensate(ctx); compErr != nil {
@@ -405,7 +444,7 @@ func (w *UserUpdationWorkflow) Run(ctx context.Context) error {
 	w.state = SagaStateCompleted
 
 	// Notify workflow completion
-	completeEvent := NewWorkflowEvent(EventTypeWorkflowComplete, "All Commands", 0, "Workflow Completed", nil)
+	completeEvent := observer.NewWorkflowEvent(observer.EventTypeWorkflowComplete, "All Commands", 0, "Workflow Completed", nil)
 	w.notifyObservers(completeEvent)
 
 	return nil
@@ -452,7 +491,7 @@ func NewUpdationUserWorkflowWithObservers(
 	producer outbound.Producer,
 	subscriber outbound.Subscriber,
 	oldUser, newUser *entity.User,
-	observers ...WorkflowObserver,
+	observers ...observer.WorkflowObserver,
 ) Workflow {
 	workflow := NewUpdationUserWorkflow(producer, subscriber, oldUser, newUser).(*UserUpdationWorkflow)
 
